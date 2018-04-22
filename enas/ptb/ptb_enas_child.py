@@ -430,7 +430,7 @@ class PTBEnasChild(object):
         should_zero = tf.logical_and(
           tf.equal(x[:, :step], x[:, step:step+1]),
           tf.equal(e_mask[:, :step], 0))
-        should_zero = tf.reduce_any(should_zero, axis=1, keep_dims=True)
+        should_zero = tf.reduce_any(should_zero, axis=1, keepdims=True)
         r.append(should_zero)
       r = tf.concat(r, axis=1)
       e_mask = tf.where(r, tf.zeros_like(e_mask), e_mask)
