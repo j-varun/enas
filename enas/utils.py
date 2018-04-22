@@ -122,6 +122,8 @@ def get_train_ops(
     l2_loss = tf.add_n(l2_losses)
     loss += l2_reg * l2_loss
 
+  # print(loss)
+  # print(tf_variables)
   grads = tf.gradients(loss, tf_variables)
   grad_norm = tf.global_norm(grads)
 
@@ -150,7 +152,7 @@ def get_train_ops(
       grads = clipped
     else:
       raise NotImplementedError("Unknown clip_mode {}".format(clip_mode))
-  
+
   if lr_cosine:
     assert lr_max is not None, "Need lr_max to use lr_cosine"
     assert lr_min is not None, "Need lr_min to use lr_cosine"
