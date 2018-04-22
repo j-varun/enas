@@ -6,7 +6,7 @@ python enas/ptb/main.py \
   --search_for="enas" \
   --noreset_output_dir \
   --data_path="data/ptb/ptb.pkl" \
-  --output_dir="outputs" \
+  --output_dir="ptb_outputs" \
   --batch_size=20 \
   --child_bptt_steps=35 \
   --num_epochs=100 \
