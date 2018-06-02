@@ -194,8 +194,9 @@ class GeneralChild(Model):
       layers = []
 
       out_filters = self.out_filters
+      C = self._get_C(images) 
       with tf.variable_scope("stem_conv"):
-        w = create_weight("w", [3, 3, 3, out_filters])
+        w = create_weight("w", [C, C, C, out_filters])
         x = tf.nn.conv2d(images, w, [1, 1, 1, 1], "SAME", data_format=self.data_format)
         x = batch_norm(x, is_training, data_format=self.data_format)
         layers.append(x)
@@ -232,9 +233,11 @@ class GeneralChild(Model):
       if is_training:
         x = tf.nn.dropout(x, self.keep_prob)
       with tf.variable_scope("fc"):
-        if self.data_format == "NWHC":
-          inp_c = x.get_shape()[3].value
+        if self.data_format == "NHWC":
+          print("shape = ",x.shape)
+          inp_c = x.get_shape()[1].value
         elif self.data_format == "NCHW":
+          print("shape = ",x.get_shape())
           inp_c = x.get_shape()[1].value
         else:
           raise ValueError("Unknown data_format {0}".format(self.data_format))
