@@ -1,6 +1,11 @@
 import os
 import sys
-import pickle
+
+try:
+  import cPickle as pickle
+except ImportError:
+  import _pickle as pickle
+
 import numpy as np
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data

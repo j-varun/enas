@@ -245,12 +245,13 @@ class MicroChild(Model):
 
     with tf.variable_scope(self.name, reuse=reuse):
       # the first two inputs
+      input_channels = self._get_C(images)
       with tf.variable_scope("stem_conv"):
-        w = create_weight("w", [3, 3, 3, self.out_filters * 3])
+        w = create_weight("w", [input_channels, input_channels, input_channels, self.out_filters * 3])
         x = tf.nn.conv2d(
           images, w, [1, 1, 1, 1], "SAME", data_format=self.data_format)
         x = batch_norm(x, is_training, data_format=self.data_format)
-      if self.data_format == "NHCW":
+      if self.data_format == "NHWC":
         split_axis = 3
       elif self.data_format == "NCHW":
         split_axis = 1
@@ -333,7 +334,7 @@ class MicroChild(Model):
       if is_training and self.keep_prob is not None and self.keep_prob < 1.0:
         x = tf.nn.dropout(x, self.keep_prob)
       with tf.variable_scope("fc"):
-        inp_c = self._get_C(x)
+        inp_c = x.get_shape()[1]
         w = create_weight("w", [inp_c, 10])
         x = tf.matmul(x, w)
     return x
