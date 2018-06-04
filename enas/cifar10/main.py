@@ -4,6 +4,11 @@ from __future__ import print_function
 
 import os
 import _pickle as pickle
+try:
+  import cPickle as pickle
+except ImportError:
+  import _pickle as pickle
+
 import shutil
 import sys
 import time
