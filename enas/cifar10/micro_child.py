@@ -334,7 +334,6 @@ class MicroChild(Model):
       if is_training and self.keep_prob is not None and self.keep_prob < 1.0:
         x = tf.nn.dropout(x, self.keep_prob)
       with tf.variable_scope("fc"):
-        print("x shape ",x.get_shape())
         inp_c = x.get_shape()[1]
         w = create_weight("w", [inp_c, 10])
         x = tf.matmul(x, w)
