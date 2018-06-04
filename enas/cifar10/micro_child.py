@@ -245,9 +245,9 @@ class MicroChild(Model):
 
     with tf.variable_scope(self.name, reuse=reuse):
       # the first two inputs
-      inp_c = self._get_C(images)
+      input_channels = self._get_C(images)
       with tf.variable_scope("stem_conv"):
-        w = create_weight("w", [inp_c, inp_c, inp_c, self.out_filters * 3])
+        w = create_weight("w", [input_channels, input_channels, input_channels, self.out_filters * 3])
         x = tf.nn.conv2d(
           images, w, [1, 1, 1, 1], "SAME", data_format=self.data_format)
         x = batch_norm(x, is_training, data_format=self.data_format)
