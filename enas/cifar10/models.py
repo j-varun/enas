@@ -14,6 +14,10 @@ from enas.cifar10.image_ops import global_avg_pool
 from enas.utils import count_model_params
 from enas.utils import get_train_ops
 
+from block_stacking_reader import CostarBlockStackingSequence
+from keras.utils import OrderedEnqueuer
+from tf.data.Dataset import Dataset
+
 
 class Model(object):
   def __init__(self,
@@ -72,6 +76,19 @@ class Model(object):
       self.num_train_examples = np.shape(images["train"])[0]
       self.num_train_batches = (
         self.num_train_examples + self.batch_size - 1) // self.batch_size
+
+      #Support for stacking generator
+      training_generator = CostarBlockStackingSequence(filenames, batch_size=self.num_train_batches, verbose=0)
+      bsg_train = block_stacking_generator(training_generator)
+      train_enqueuer = OrderedEnqueuer(
+                    training_generator,
+                    use_multiprocessing=False,
+                    shuffle=True)
+      train_enqueuer.start(workers=1, max_queue_size=1)
+      train_generator = iter(train_enqueuer.get())
+      train_data = Dataset.from_generator(train_generator,[tf.float,tf.float])
+      x_train, y_train = train_data.make_one_shot_iterator().get_next()
+
       x_train, y_train = tf.train.shuffle_batch(
         [images["train"], labels["train"]],
         batch_size=self.batch_size,
