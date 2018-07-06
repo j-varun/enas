@@ -54,6 +54,7 @@ class MicroChild(Model):
                num_replicas=None,
                data_format="NHWC",
                name="child",
+               dataset="cifar",
                **kwargs
               ):
     """
@@ -77,7 +78,8 @@ class MicroChild(Model):
       num_aggregate=num_aggregate,
       num_replicas=num_replicas,
       data_format=data_format,
-      name=name)
+      name=name,
+      dataset=dataset)
 
     if self.data_format == "NHWC":
       self.actual_data_format = "channels_last"
@@ -245,12 +247,14 @@ class MicroChild(Model):
 
     with tf.variable_scope(self.name, reuse=reuse):
       # the first two inputs
+      input_channels = self._get_C(images)
+      print("channels--------------------------",input_channels)
       with tf.variable_scope("stem_conv"):
-        w = create_weight("w", [3, 3, 3, self.out_filters * 3])
+        w = create_weight("w", [input_channels, input_channels, input_channels, self.out_filters * 3])
         x = tf.nn.conv2d(
           images, w, [1, 1, 1, 1], "SAME", data_format=self.data_format)
         x = batch_norm(x, is_training, data_format=self.data_format)
-      if self.data_format == "NHCW":
+      if self.data_format == "NHWC":
         split_axis = 3
       elif self.data_format == "NCHW":
         split_axis = 1
@@ -333,7 +337,7 @@ class MicroChild(Model):
       if is_training and self.keep_prob is not None and self.keep_prob < 1.0:
         x = tf.nn.dropout(x, self.keep_prob)
       with tf.variable_scope("fc"):
-        inp_c = self._get_C(x)
+        inp_c = x.get_shape()[1]
         w = create_weight("w", [inp_c, 10])
         x = tf.matmul(x, w)
     return x
@@ -699,6 +703,7 @@ class MicroChild(Model):
   def _build_train(self):
     print("-" * 80)
     print("Build train graph")
+    print("shape-----------------------",self.x_train.shape)
     logits = self._model(self.x_train, is_training=True)
     log_probs = tf.nn.sparse_softmax_cross_entropy_with_logits(
       logits=logits, labels=self.y_train)
@@ -773,33 +778,37 @@ class MicroChild(Model):
   def build_valid_rl(self, shuffle=False):
     print("-" * 80)
     print("Build valid graph on shuffled data")
-    with tf.device("/cpu:0"):
-      # shuffled valid data: for choosing validation model
-      if not shuffle and self.data_format == "NCHW":
-        self.images["valid_original"] = np.transpose(
-          self.images["valid_original"], [0, 3, 1, 2])
-      x_valid_shuffle, y_valid_shuffle = tf.train.shuffle_batch(
-        [self.images["valid_original"], self.labels["valid_original"]],
-        batch_size=self.batch_size,
-        capacity=25000,
-        enqueue_many=True,
-        min_after_dequeue=0,
-        num_threads=16,
-        seed=self.seed,
-        allow_smaller_final_batch=True,
-      )
+    if self.dataset == "stacking":
+      #TODO
+      x_valid_shuffle, y_valid_shuffle = self.x_valid, self.y_valid
+    else:
+      with tf.device("/cpu:0"):
+        # shuffled valid data: for choosing validation model
+        if not shuffle and self.data_format == "NCHW":
+          self.images["valid_original"] = np.transpose(
+            self.images["valid_original"], [0, 3, 1, 2])
+        x_valid_shuffle, y_valid_shuffle = tf.train.shuffle_batch(
+          [self.images["valid_original"], self.labels["valid_original"]],
+          batch_size=self.batch_size,
+          capacity=25000,
+          enqueue_many=True,
+          min_after_dequeue=0,
+          num_threads=16,
+          seed=self.seed,
+          allow_smaller_final_batch=True,
+        )
 
-      def _pre_process(x):
-        x = tf.pad(x, [[4, 4], [4, 4], [0, 0]])
-        x = tf.random_crop(x, [32, 32, 3], seed=self.seed)
-        x = tf.image.random_flip_left_right(x, seed=self.seed)
-        if self.data_format == "NCHW":
-          x = tf.transpose(x, [2, 0, 1])
-        return x
+        def _pre_process(x):
+          x = tf.pad(x, [[4, 4], [4, 4], [0, 0]])
+          x = tf.random_crop(x, [32, 32, 3], seed=self.seed)
+          x = tf.image.random_flip_left_right(x, seed=self.seed)
+          if self.data_format == "NCHW":
+            x = tf.transpose(x, [2, 0, 1])
+          return x
 
-      if shuffle:
-        x_valid_shuffle = tf.map_fn(
-          _pre_process, x_valid_shuffle, back_prop=False)
+        if shuffle:
+          x_valid_shuffle = tf.map_fn(
+            _pre_process, x_valid_shuffle, back_prop=False)
 
     logits = self._model(x_valid_shuffle, is_training=True, reuse=True)
     valid_shuffle_preds = tf.argmax(logits, axis=1)

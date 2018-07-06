@@ -3,13 +3,20 @@ from __future__ import division
 from __future__ import print_function
 
 import os
-import cPickle as pickle
+
+try:
+  import cPickle as pickle
+except ImportError:
+  import _pickle as pickle
+
 import shutil
 import sys
 import time
 
 import numpy as np
 import tensorflow as tf
+
+sys.path.append('./')
 
 from enas import utils
 from enas.utils import Logger
@@ -33,6 +40,7 @@ DEFINE_boolean("reset_output_dir", False, "Delete output_dir if exists.")
 DEFINE_string("data_path", "", "")
 DEFINE_string("output_dir", "", "")
 DEFINE_string("data_format", "NHWC", "'NHWC' or 'NCWH'")
+DEFINE_string("dataset", "cifar", "'cifar' or 'fmnist' or 'stacking'")
 DEFINE_string("search_for", None, "Must be [macro|micro]")
 
 DEFINE_integer("batch_size", 32, "")
@@ -138,6 +146,7 @@ def get_ops(images, labels):
     sync_replicas=FLAGS.child_sync_replicas,
     num_aggregate=FLAGS.child_num_aggregate,
     num_replicas=FLAGS.child_num_replicas,
+    dataset=FLAGS.dataset,
   )
 
   if FLAGS.child_fixed_arc is None:
@@ -214,9 +223,9 @@ def get_ops(images, labels):
 
 def train():
   if FLAGS.child_fixed_arc is None:
-    images, labels = read_data(FLAGS.data_path)
+    images, labels = read_data(FLAGS.data_path, dataset = FLAGS.dataset)
   else:
-    images, labels = read_data(FLAGS.data_path, num_valids=0)
+    images, labels = read_data(FLAGS.data_path, num_valids = 0, dataset = FLAGS.dataset)
 
   g = tf.Graph()
   with g.as_default():
