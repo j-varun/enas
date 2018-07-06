@@ -40,7 +40,7 @@ DEFINE_boolean("reset_output_dir", False, "Delete output_dir if exists.")
 DEFINE_string("data_path", "", "")
 DEFINE_string("output_dir", "", "")
 DEFINE_string("data_format", "NHWC", "'NHWC' or 'NCWH'")
-DEFINE_string("dataset", "cifar", "'cifar' or 'fmnist'")
+DEFINE_string("dataset", "cifar", "'cifar' or 'fmnist' or 'stacking'")
 DEFINE_string("search_for", None, "Must be [macro|micro]")
 
 DEFINE_integer("batch_size", 32, "")
@@ -146,6 +146,7 @@ def get_ops(images, labels):
     sync_replicas=FLAGS.child_sync_replicas,
     num_aggregate=FLAGS.child_num_aggregate,
     num_replicas=FLAGS.child_num_replicas,
+    dataset=FLAGS.dataset,
   )
 
   if FLAGS.child_fixed_arc is None:

@@ -64,8 +64,8 @@ def tile_vector_as_image_channels_np(vector_op, image_shape):
     """
     ivs = np.shape(vector_op)
     # reshape the vector into a single pixel
-    vector_pixel_shape = [ivs[0], 1, 1, ivs[1]]
-    vector_op = np.reshape(vector_op, vector_pixel_shape)
+    vector_pixel_shape = np.array([ivs[1], 1, 1, ivs[2]])
+    vector_op = np.reshape(np.array(vector_op), vector_pixel_shape)
     # tile the pixel into a full image
     tile_dimensions = [1, image_shape[1], image_shape[2], 1]
     vector_op = np.tile(vector_op, tile_dimensions)
@@ -456,32 +456,43 @@ def block_stacking_generator(sequence):
 
 if __name__ == "__main__":
     tf.enable_eager_execution()
-    filenames = glob.glob(os.path.expanduser('~/.keras/datasets/costar_block_stacking_dataset_v0.2/*success.h5f'))
+    filenames = glob.glob(os.path.expanduser(r'C:\Users\Varun\JHU\LAB\Projects\costar_task_planning_stacking_dataset_v0.1\*success.h5f'))
     # print(filenames)
     training_generator = CostarBlockStackingSequence(
-        filenames, batch_size=1, verbose=0,
+        filenames, batch_size=2, verbose=0,
         label_features_to_extract='grasp_goal_xyz_aaxyz_nsc_8',
-        data_features_to_extract=['current_xyz_aaxyz_nsc_8'])
+        data_features_to_extract=['image_0_image_n_vec_xyz_aaxyz_nsc_15'], output_shape= (32,32,3))
     num_batches = len(training_generator)
 
-    bsg = block_stacking_generator(training_generator)
-    iter(bsg)
-    from tqdm import tqdm as tqdm
-    progress = tqdm(range(num_batches))
-    for i in progress:
-        data = next(bsg)
-        progress.set_description('step: ' + str(i) + ' data type: ' + str(type(data)))
+    # bsg = block_stacking_generator(training_generator)
+    # iter(bsg)
+    # from tqdm import tqdm as tqdm
+    # progress = tqdm(range(num_batches))
+    # for i in progress:
+    #     data = next(bsg)
+    #     progress.set_description('step: ' + str(i) + ' data type: ' + str(type(data)))
     # a = next(training_generator)
+    Dataset = tf.data.Dataset
     enqueuer = OrderedEnqueuer(
                     training_generator,
                     use_multiprocessing=False,
                     shuffle=True)
     enqueuer.start(workers=1, max_queue_size=1)
-    generator = iter(enqueuer.get())
-    print("-------------------")
-    generator_ouput = next(generator)
-    print("-------------------op")
-    x, y = generator_ouput
+    batch_size = 2
+    # generator = iter(enqueuer.get())
+    generator = lambda: iter(enqueuer.get())
+    print("-------------------") 
+    train_data = Dataset.from_generator(generator,(tf.float32,tf.float32))
+    training_iterator = train_data.make_one_shot_iterator()
+    x_train, y_train = training_iterator.get_next()
+    print("y_train------------",y_train)
+    x_train, y_train = training_iterator.get_next()
+    print("y_train------------",y_train)
+    print("x_train---------",x_train.shape)
+    # print(y_train.shape)
+    # generator_ouput = next(generator)
+    # print("-------------------op")
+    # x, y = generator_ouput
     # print(x.shape)
     # print(y.shape)
 

@@ -54,7 +54,7 @@ class MicroChild(Model):
                num_replicas=None,
                data_format="NHWC",
                name="child",
-               dataset="cifar"
+               dataset="cifar",
                **kwargs
               ):
     """
@@ -248,6 +248,7 @@ class MicroChild(Model):
     with tf.variable_scope(self.name, reuse=reuse):
       # the first two inputs
       input_channels = self._get_C(images)
+      print("channels--------------------------",input_channels)
       with tf.variable_scope("stem_conv"):
         w = create_weight("w", [input_channels, input_channels, input_channels, self.out_filters * 3])
         x = tf.nn.conv2d(
@@ -702,6 +703,7 @@ class MicroChild(Model):
   def _build_train(self):
     print("-" * 80)
     print("Build train graph")
+    print("shape-----------------------",self.x_train.shape)
     logits = self._model(self.x_train, is_training=True)
     log_probs = tf.nn.sparse_softmax_cross_entropy_with_logits(
       logits=logits, labels=self.y_train)

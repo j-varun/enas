@@ -53,6 +53,7 @@ def _read_fmnist_data(data_path):
   labels["train"] = np.array(data.train.labels, dtype = np.int32)
   labels["test"] = np.array(data.test.labels, dtype = np.int32)
   print("Read and processed data..")
+  print(labels["test"])
 
   return images, labels
 
@@ -80,6 +81,9 @@ def read_data(data_path, num_valids=5000, dataset = "cifar"):
     images, labels = valid_split_data(images, labels, num_valids)
     return images, labels
 
+  if dataset == "stacking":
+    images["path"] = data_path
+    return images, labels
   else:
     train_files = [
       "data_batch_1",
