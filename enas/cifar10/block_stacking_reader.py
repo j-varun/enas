@@ -483,7 +483,7 @@ if __name__ == "__main__":
     # generator = iter(enqueuer.get())
     generator = lambda: iter(enqueuer.get())
     print("-------------------")
-    train_data = Dataset.from_generator(generator,(tf.float32,tf.float32))
+    train_data = Dataset.from_generator(generator,(tf.float32,tf.float32),(tf.TensorShape([None,32,32,15]),tf.TensorShape([None,])))
     training_iterator = train_data.make_one_shot_iterator()
     i = 0
     while i < 100:

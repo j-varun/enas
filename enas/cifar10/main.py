@@ -275,7 +275,7 @@ def train():
             log_string += " loss={:<8.6f}".format(loss)
             log_string += " lr={:<8.4f}".format(lr)
             log_string += " |g|={:<8.4f}".format(gn)
-            log_string += " tr_acc={:<3d}/{:>3d}".format(
+            log_string += " tr_acc={:<3f}/{:>3d}".format(
                 tr_acc, FLAGS.batch_size)
             log_string += " mins={:<10.2f}".format(
                 float(curr_time - start_time) / 60)
