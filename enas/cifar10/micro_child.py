@@ -322,7 +322,7 @@ class MicroChild(Model):
               aux_logits = global_avg_pool(aux_logits,
                                            data_format=self.data_format)
               inp_c = aux_logits.get_shape()[1].value
-              w = create_weight("w", [inp_c, 10])
+              w = create_weight("w", [inp_c, 8])
               aux_logits = tf.matmul(aux_logits, w)
               self.aux_logits = aux_logits
 
@@ -338,7 +338,9 @@ class MicroChild(Model):
         x = tf.nn.dropout(x, self.keep_prob)
       with tf.variable_scope("fc"):
         inp_c = x.get_shape()[1]
-        w = create_weight("w", [inp_c, 10])
+        # print("inp_c--------------",inp_c)
+        # print("shape x model --------------", x.shape)
+        w = create_weight("w", [inp_c, 8])
         x = tf.matmul(x, w)
     return x
 
@@ -703,24 +705,40 @@ class MicroChild(Model):
   def _build_train(self):
     print("-" * 80)
     print("Build train graph")
-    print("shape-----------------------",self.x_train.shape)
+    # print("xtrshape-----------------------",self.x_train.shape)
     logits = self._model(self.x_train, is_training=True)
-    log_probs = tf.nn.sparse_softmax_cross_entropy_with_logits(
+    # tf.Print(logits,[tf.shape(logits),"-----------log"])
+    # print("ytrshape-----------", self.y_train)
+    if self.dataset == "stacking":
+      softmax = tf.nn.softmax_cross_entropy_with_logits
+    else:
+      softmax = tf.nn.sparse_softmax_cross_entropy_with_logits
+    log_probs = softmax(
       logits=logits, labels=self.y_train)
     self.loss = tf.reduce_mean(log_probs)
 
     if self.use_aux_heads:
-      log_probs = tf.nn.sparse_softmax_cross_entropy_with_logits(
+      log_probs = softmax(
         logits=self.aux_logits, labels=self.y_train)
       self.aux_loss = tf.reduce_mean(log_probs)
       train_loss = self.loss + 0.4 * self.aux_loss
     else:
       train_loss = self.loss
 
-    self.train_preds = tf.argmax(logits, axis=1)
-    self.train_preds = tf.to_int32(self.train_preds)
+    if self.dataset == "stacking":
+      cast_type = tf.to_float
+    else:
+      cast_type = tf.to_int32
+
+    if self.dataset == "stacking":
+      self.train_preds = logits
+    else:
+        self.train_preds = tf.argmax(logits, axis=1)
+    self.train_preds = cast_type(self.train_preds)
+    # tf.Print(self.train_preds,[tf.shape(self.train_preds),"trainpreds----"])
+    # tf.Print(self.y_train,[tf.shape(self.y_train),"ytra==-------------"])
     self.train_acc = tf.equal(self.train_preds, self.y_train)
-    self.train_acc = tf.to_int32(self.train_acc)
+    self.train_acc = cast_type(self.train_acc)
     self.train_acc = tf.reduce_sum(self.train_acc)
 
     tf_variables = [
@@ -757,10 +775,15 @@ class MicroChild(Model):
       print("-" * 80)
       print("Build valid graph")
       logits = self._model(self.x_valid, False, reuse=True)
-      self.valid_preds = tf.argmax(logits, axis=1)
-      self.valid_preds = tf.to_int32(self.valid_preds)
+      if self.dataset == "stacking":
+          cast_type = tf.to_float
+          self.valid_preds = logits
+      else:
+          cast_type = tf.to_int32
+          self.valid_preds = tf.argmax(logits, axis=1)
+      self.valid_preds = cast_type(self.valid_preds)
       self.valid_acc = tf.equal(self.valid_preds, self.y_valid)
-      self.valid_acc = tf.to_int32(self.valid_acc)
+      self.valid_acc = cast_type(self.valid_acc)
       self.valid_acc = tf.reduce_sum(self.valid_acc)
 
   # override
@@ -768,10 +791,15 @@ class MicroChild(Model):
     print("-" * 80)
     print("Build test graph")
     logits = self._model(self.x_test, False, reuse=True)
-    self.test_preds = tf.argmax(logits, axis=1)
-    self.test_preds = tf.to_int32(self.test_preds)
+    if self.dataset == "stacking":
+      cast_type = tf.to_float
+      self.test_preds = logits
+    else:
+      cast_type = tf.to_int32
+      self.test_preds = tf.argmax(logits, axis=1)
+    self.test_preds = cast_type(self.test_preds)
     self.test_acc = tf.equal(self.test_preds, self.y_test)
-    self.test_acc = tf.to_int32(self.test_acc)
+    self.test_acc = cast_type(self.test_acc)
     self.test_acc = tf.reduce_sum(self.test_acc)
 
   # override
@@ -811,10 +839,15 @@ class MicroChild(Model):
             _pre_process, x_valid_shuffle, back_prop=False)
 
     logits = self._model(x_valid_shuffle, is_training=True, reuse=True)
-    valid_shuffle_preds = tf.argmax(logits, axis=1)
-    valid_shuffle_preds = tf.to_int32(valid_shuffle_preds)
+    if self.dataset == "stacking":
+      cast_type = tf.to_float
+      valid_shuffle_preds = logits
+    else:
+      cast_type = tf.to_int32
+      valid_shuffle_preds = tf.argmax(logits, axis=1)
+    valid_shuffle_preds = cast_type(valid_shuffle_preds)
     self.valid_shuffle_acc = tf.equal(valid_shuffle_preds, y_valid_shuffle)
-    self.valid_shuffle_acc = tf.to_int32(self.valid_shuffle_acc)
+    self.valid_shuffle_acc = cast_type(self.valid_shuffle_acc)
     self.valid_shuffle_acc = tf.reduce_sum(self.valid_shuffle_acc)
 
   def connect_controller(self, controller_model):

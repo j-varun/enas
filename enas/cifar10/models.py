@@ -92,6 +92,9 @@ class Model(object):
         validation_data = file_names[val_test_size:val_test_size*2]
         test_data = file_names[:val_test_size]
         estimated_images_per_example = 5
+        print(file_names)
+        self.num_train_examples = len(train_data) * self.batch_size * estimated_images_per_example
+        self.num_train_batches = (self.num_train_examples + self.batch_size - 1) // self.batch_size
         output_shape = (32,32,3)
         data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
         label_features = ['grasp_goal_xyz_aaxyz_nsc_8']
@@ -106,12 +109,13 @@ class Model(object):
                       shuffle=True)
         train_enqueuer.start(workers=1, max_queue_size=1)
         train_generator = lambda: iter(train_enqueuer.get())
-        train_dataset = Dataset.from_generator(train_generator,(tf.float32,tf.float32))
+        train_dataset = Dataset.from_generator(train_generator,(tf.float32,tf.float32), (tf.TensorShape([None,32,32,15]),tf.TensorShape([None,None])))
         trainer = train_dataset.make_one_shot_iterator()
         x_train, y_train = trainer.get_next()
-        print("y shape--------------",y_train.shape)
+        print("y shape--------------",y_train)
         self.num_train_examples = len(train_data) * self.batch_size * estimated_images_per_example
         self.num_train_batches = (self.num_train_examples + self.batch_size - 1) // self.batch_size
+        print("batch--------------------------",self.num_train_examples,self.num_train_batches)
         self.x_train = x_train
         self.y_train = y_train
 
@@ -171,7 +175,7 @@ class Model(object):
                       shuffle=True)
         validation_enqueuer.start(workers=1, max_queue_size=1)
         validation_generator = lambda: iter(train_enqueuer.get())
-        validation_dataset = Dataset.from_generator(validation_generator,(tf.float32,tf.float32))
+        validation_dataset = Dataset.from_generator(validation_generator,(tf.float32,tf.float32), (tf.TensorShape([None,32,32,15]),tf.TensorShape([None,None])))
         self.num_valid_examples = len(validation_data) * self.eval_batch_size * estimated_images_per_example
         self.num_valid_batches = (self.num_valid_examples + self.eval_batch_size - 1) // self.eval_batch_size
         self.x_valid, self.y_valid = validation_dataset.make_one_shot_iterator().get_next()
@@ -210,7 +214,7 @@ class Model(object):
                       shuffle=True)
         test_enqueuer.start(workers=1, max_queue_size=1)
         test_generator = lambda: iter(train_enqueuer.get())
-        test_dataset = Dataset.from_generator(test_generator,(tf.float32,tf.float32))
+        test_dataset = Dataset.from_generator(test_generator,(tf.float32,tf.float32), (tf.TensorShape([None,32,32,15]),tf.TensorShape([None,None])))
         self.num_test_examples = len(test_data) * self.eval_batch_size * estimated_images_per_example
         self.num_test_batches = (self.num_valid_examples + self.eval_batch_size - 1) // self.eval_batch_size
         self.x_test, self.y_test = test_dataset.make_one_shot_iterator().get_next()
