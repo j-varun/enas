@@ -56,6 +56,8 @@ class MicroChild(Model):
                num_replicas=None,
                data_format="NHWC",
                name="child",
+               valid_set_size=32,
+               image_shape=(32,32,3),
                dataset="cifar",
                **kwargs
               ):
@@ -81,6 +83,8 @@ class MicroChild(Model):
       num_replicas=num_replicas,
       data_format=data_format,
       name=name,
+      valid_set_size=valid_set_size,
+      image_shape=image_shape,
       dataset=dataset)
 
     if self.data_format == "NHWC":
@@ -324,7 +328,7 @@ class MicroChild(Model):
               aux_logits = global_avg_pool(aux_logits,
                                            data_format=self.data_format)
               inp_c = aux_logits.get_shape()[1].value
-              w = create_weight("w", [inp_c, 8])
+              w = create_weight("w", [inp_c, self.y_train.shape[-1]])
               aux_logits = tf.matmul(aux_logits, w)
               self.aux_logits = aux_logits
 
@@ -342,7 +346,7 @@ class MicroChild(Model):
         inp_c = x.get_shape()[1]
         # print("inp_c--------------",inp_c)
         # print("shape x model --------------", x.shape)
-        w = create_weight("w", [inp_c, 8])
+        w = create_weight("w", [inp_c, self.y_train.shape[-1]])
         x = tf.matmul(x, w)
     return x
 
@@ -743,6 +747,9 @@ class MicroChild(Model):
       print("train_acc--------------",self.train_acc)
       self.train_acc = cast_type(self.train_acc)
       self.train_acc = tf.reduce_sum(self.train_acc)
+      self.train_cart_error = grasp_metrics.cart_error(self.y_train, self.train_preds)
+      self.train_angle_error = grasp_metrics.angle_error(self.y_train, self.train_preds)
+      self.train_mae = tf.metrics.mean_absolute_error(self.y_train, self.train_preds)
 
     else:
       self.train_preds = tf.argmax(logits, axis=1)

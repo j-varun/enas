@@ -41,6 +41,8 @@ class Model(object):
                data_format="NHWC",
                name="generic_model",
                seed=None,
+               valid_set_size=32,
+               image_shape=(32,32,3),
                dataset="cifar",
               ):
     """
@@ -69,6 +71,8 @@ class Model(object):
     self.name = name
     self.seed = seed
     self.dataset = dataset
+    self.valid_set_size = valid_set_size
+    self.image_shape = image_shape
 
     self.global_step = None
     self.valid_acc = None
@@ -87,12 +91,12 @@ class Model(object):
         print("datadir------------", images["path"])
         file_names = glob.glob(os.path.expanduser(images["path"]))
         np.random.seed(0)
-        val_test_size = 2
+        val_test_size = self.valid_set_size
         train_data = file_names[val_test_size*2:]
         validation_data = file_names[val_test_size:val_test_size*2]
         test_data = file_names[:val_test_size]
         estimated_images_per_example = 5
-        print(file_names)
+        print("valid set size",val_test_size)
         self.num_train_examples = len(train_data) * self.batch_size * estimated_images_per_example
         self.num_train_batches = (self.num_train_examples + self.batch_size - 1) // self.batch_size
         output_shape = (32,32,3)
@@ -101,7 +105,7 @@ class Model(object):
         training_generator = CostarBlockStackingSequence(
         train_data, batch_size=batch_size, verbose=0,
         label_features_to_extract=label_features,
-        data_features_to_extract=data_features, output_shape= (32,32,3))
+        data_features_to_extract=data_features, output_shape= self.image_shape)
 
         train_enqueuer = OrderedEnqueuer(
                       training_generator,
