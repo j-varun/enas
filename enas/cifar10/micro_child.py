@@ -748,8 +748,11 @@ class MicroChild(Model):
       self.train_acc = cast_type(self.train_acc)
       self.train_acc = tf.reduce_sum(self.train_acc)
       self.train_cart_error = grasp_metrics.cart_error(self.y_train, self.train_preds)
+      self.train_cart_error = tf.reduce_mean(tf.train_cart_error)
       self.train_angle_error = grasp_metrics.angle_error(self.y_train, self.train_preds)
+      self.train_angle_error = tf.reduce_mean(tf.train_angle_error)
       self.train_mae = tf.metrics.mean_absolute_error(self.y_train, self.train_preds)
+      self.train_mae = tf.reduce_mean(self.train_mae)
 
     else:
       self.train_preds = tf.argmax(logits, axis=1)
@@ -793,7 +796,7 @@ class MicroChild(Model):
     if self.x_valid is not None:
       print("-" * 80)
       print("Build valid graph")
-      logits = self._model(self.x_valid, False, reuse=True)
+      logits = tf.nn.sigmoid(self._model(self.x_valid, False, reuse=True))
       if self.dataset == "stacking":
         cast_type = tf.to_float
         self.valid_preds = logits
@@ -812,7 +815,7 @@ class MicroChild(Model):
   def _build_test(self):
     print("-" * 80)
     print("Build test graph")
-    logits = self._model(self.x_test, False, reuse=True)
+    logits = tf.nn.sigmoid(self._model(self.x_test, False, reuse=True))
     if self.dataset == "stacking":
       cast_type = tf.to_float
       self.test_preds = logits
@@ -862,7 +865,7 @@ class MicroChild(Model):
           x_valid_shuffle = tf.map_fn(
             _pre_process, x_valid_shuffle, back_prop=False)
 
-    logits = self._model(x_valid_shuffle, is_training=True, reuse=True)
+    logits = tf.nn.sigmoid(self._model(x_valid_shuffle, is_training=True, reuse=True))
     if self.dataset == "stacking":
       cast_type = tf.to_float
       valid_shuffle_preds = logits
