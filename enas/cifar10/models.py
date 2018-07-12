@@ -120,11 +120,13 @@ class Model(object):
         self.num_train_examples = len(train_data) * self.batch_size * estimated_images_per_example
         self.num_train_batches = (self.num_train_examples + self.batch_size - 1) // self.batch_size
         print("batch--------------------------",self.num_train_examples,self.num_train_batches)
+        self.num_classes = 8
         self.x_train = x_train
         self.y_train = y_train
 
       else:
         self.num_train_examples = np.shape(images["train"])[0]
+        self.num_classes = 10
         self.num_train_batches = (
         self.num_train_examples + self.batch_size - 1) // self.batch_size
 
