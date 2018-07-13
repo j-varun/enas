@@ -456,7 +456,8 @@ def block_stacking_generator(sequence):
 
 if __name__ == "__main__":
     tf.enable_eager_execution()
-    filenames = glob.glob(os.path.expanduser(r'C:\Users\Varun\JHU\LAB\Projects\costar_task_planning_stacking_dataset_v0.1\*success.h5f'))
+    # filenames = glob.glob(os.path.expanduser(r'C:\Users\Varun\JHU\LAB\Projects\costar_task_planning_stacking_dataset_v0.1\*success.h5f'))
+    filenames = glob.glob(os.path.expanduser('~/.keras/datasets/costar_block_stacking_dataset_v0.2/*success.h5f'))
     # print(filenames)
     training_generator = CostarBlockStackingSequence(
         filenames, batch_size=2, verbose=0,
@@ -481,14 +482,15 @@ if __name__ == "__main__":
     batch_size = 2
     # generator = iter(enqueuer.get())
     generator = lambda: iter(enqueuer.get())
-    print("-------------------") 
+    print("-------------------")
     train_data = Dataset.from_generator(generator,(tf.float32,tf.float32),(tf.TensorShape([None,32,32,15]),tf.TensorShape([None,])))
     training_iterator = train_data.make_one_shot_iterator()
-    x_train, y_train = training_iterator.get_next()
-    print("y_train------------",y_train)
-    x_train, y_train = training_iterator.get_next()
-    print("y_train------------",y_train)
-    print("x_train---------",x_train.shape)
+    i = 0
+    while i < 100:
+        x_train, y_train = training_iterator.get_next()
+        print(str(i) + " y_train------------",y_train)
+        print(str(i) + " x_train---------", x_train.shape)
+        i += 1
     # print(y_train.shape)
     # generator_ouput = next(generator)
     # print("-------------------op")
