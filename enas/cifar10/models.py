@@ -42,7 +42,7 @@ class Model(object):
                name="generic_model",
                seed=None,
                valid_set_size=32,
-               image_shape=(32,32,3),
+               image_shape=(32, 32, 3),
                dataset="cifar",
               ):
     """
@@ -96,16 +96,16 @@ class Model(object):
         validation_data = file_names[val_test_size:val_test_size*2]
         test_data = file_names[:val_test_size]
         estimated_images_per_example = 5
-        print("valid set size",val_test_size)
+        print("valid set size", val_test_size)
         self.num_train_examples = len(train_data) * self.batch_size * estimated_images_per_example
         self.num_train_batches = (self.num_train_examples + self.batch_size - 1) // self.batch_size
-        output_shape = (32,32,3)
+        output_shape = (32, 32, 3)
         data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
         label_features = ['grasp_goal_xyz_aaxyz_nsc_8']
         training_generator = CostarBlockStackingSequence(
-        train_data, batch_size=batch_size, verbose=0,
-        label_features_to_extract=label_features,
-        data_features_to_extract=data_features, output_shape= self.image_shape)
+          train_data, batch_size=batch_size, verbose=0,
+          label_features_to_extract=label_features,
+          data_features_to_extract=data_features, output_shape=self.image_shape)
 
         train_enqueuer = OrderedEnqueuer(
                       training_generator,
@@ -113,13 +113,13 @@ class Model(object):
                       shuffle=True)
         train_enqueuer.start(workers=1, max_queue_size=1)
         train_generator = lambda: iter(train_enqueuer.get())
-        train_dataset = Dataset.from_generator(train_generator,(tf.float32,tf.float32), (tf.TensorShape([None,32,32,15]),tf.TensorShape([None,None])))
+        train_dataset = Dataset.from_generator(train_generator, (tf.float32, tf.float32), (tf.TensorShape([None, 32, 32, 15]), tf.TensorShape([None, None])))
         trainer = train_dataset.make_one_shot_iterator()
         x_train, y_train = trainer.get_next()
-        print("y shape--------------",y_train)
+        print("y shape--------------", y_train)
         self.num_train_examples = len(train_data) * self.batch_size * estimated_images_per_example
         self.num_train_batches = (self.num_train_examples + self.batch_size - 1) // self.batch_size
-        print("batch--------------------------",self.num_train_examples,self.num_train_batches)
+        print("batch--------------------------", self.num_train_examples, self.num_train_batches)
         self.num_classes = 8
         self.x_train = x_train
         self.y_train = y_train
