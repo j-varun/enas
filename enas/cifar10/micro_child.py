@@ -748,9 +748,9 @@ class MicroChild(Model):
       self.train_acc = cast_type(self.train_acc)
       self.train_acc = tf.reduce_sum(self.train_acc)
       self.train_cart_error = grasp_metrics.cart_error(self.y_train, self.train_preds)
-      self.train_cart_error = tf.reduce_mean(tf.train_cart_error)
+      self.train_cart_error = tf.reduce_mean(self.train_cart_error)
       self.train_angle_error = grasp_metrics.angle_error(self.y_train, self.train_preds)
-      self.train_angle_error = tf.reduce_mean(tf.train_angle_error)
+      self.train_angle_error = tf.reduce_mean(self.train_angle_error)
       self.train_mae = tf.metrics.mean_absolute_error(self.y_train, self.train_preds)
       self.train_mae = tf.reduce_mean(self.train_mae)
 

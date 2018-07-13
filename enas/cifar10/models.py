@@ -113,7 +113,7 @@ class Model(object):
                       shuffle=True)
         train_enqueuer.start(workers=1, max_queue_size=1)
         train_generator = lambda: iter(train_enqueuer.get())
-        train_dataset = Dataset.from_generator(train_generator,(tf.float32,tf.float32), (tf.TensorShape([None,image_shape[0],image_shape[1],15]),tf.TensorShape([None,None])))
+        train_dataset = Dataset.from_generator(train_generator,(tf.float32,tf.float32), (tf.TensorShape([None, self.image_shape[0], self.image_shape[1],15]),tf.TensorShape([None,None])))
         trainer = train_dataset.make_one_shot_iterator()
         x_train, y_train = trainer.get_next()
         print("x shape--------------",x_train.shape)
@@ -174,17 +174,18 @@ class Model(object):
         validation_generator = CostarBlockStackingSequence(
             validation_data, batch_size=batch_size, verbose=0,
             label_features_to_extract=label_features,
-            data_features_to_extract=data_features, output_shape= (32,32,3))
+            data_features_to_extract=data_features, output_shape= self.image_shape)
         validation_enqueuer = OrderedEnqueuer(
                       validation_generator,
                       use_multiprocessing=False,
                       shuffle=True)
         validation_enqueuer.start(workers=1, max_queue_size=1)
         validation_generator = lambda: iter(train_enqueuer.get())
-        validation_dataset = Dataset.from_generator(validation_generator,(tf.float32,tf.float32), (tf.TensorShape([None,32,32,15]),tf.TensorShape([None,None])))
+        validation_dataset = Dataset.from_generator(validation_generator,(tf.float32, tf.float32), (tf.TensorShape([None, self.image_shape[0], self.image_shape[1], 15]),tf.TensorShape([None, None])))
         self.num_valid_examples = len(validation_data) * self.eval_batch_size * estimated_images_per_example
         self.num_valid_batches = (self.num_valid_examples + self.eval_batch_size - 1) // self.eval_batch_size
         self.x_valid, self.y_valid = validation_dataset.make_one_shot_iterator().get_next()
+        print("x-v........-------------",self.x_valid.shape)
         if "valid_original" not in images.keys():
           images["valid_original"] = np.copy(self.x_valid)
           labels["valid_original"] = np.copy(self.y_valid)
@@ -213,14 +214,14 @@ class Model(object):
         test_generator = CostarBlockStackingSequence(
           test_data, batch_size=batch_size, verbose=0,
           label_features_to_extract=label_features,
-          data_features_to_extract=data_features, output_shape= (32,32,3))
+          data_features_to_extract=data_features, output_shape= self.image_shape)
         test_enqueuer = OrderedEnqueuer(
                       test_generator,
                       use_multiprocessing=False,
                       shuffle=True)
         test_enqueuer.start(workers=1, max_queue_size=1)
         test_generator = lambda: iter(train_enqueuer.get())
-        test_dataset = Dataset.from_generator(test_generator,(tf.float32,tf.float32), (tf.TensorShape([None,32,32,15]),tf.TensorShape([None,None])))
+        test_dataset = Dataset.from_generator(test_generator,(tf.float32, tf.float32), (tf.TensorShape([None, self.image_shape[0], self.image_shape[1], 15]), tf.TensorShape([None, None])))
         self.num_test_examples = len(test_data) * self.eval_batch_size * estimated_images_per_example
         self.num_test_batches = (self.num_valid_examples + self.eval_batch_size - 1) // self.eval_batch_size
         self.x_test, self.y_test = test_dataset.make_one_shot_iterator().get_next()
