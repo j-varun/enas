@@ -44,6 +44,10 @@ DEFINE_string("dataset", "cifar", "'cifar' or 'fmnist' or 'stacking'")
 DEFINE_string("search_for", None, "Must be [macro|micro]")
 
 DEFINE_integer("batch_size", 32, "")
+DEFINE_integer("valid_set_size", 32, "")
+DEFINE_integer("height_img", 32, "")
+DEFINE_integer("width_img", 32, "")
+DEFINE_boolean("regression",False, "Task is regression or classification")
 
 DEFINE_integer("num_epochs", 300, "")
 DEFINE_integer("child_lr_dec_every", 100, "")
@@ -146,6 +150,8 @@ def get_ops(images, labels):
     sync_replicas=FLAGS.child_sync_replicas,
     num_aggregate=FLAGS.child_num_aggregate,
     num_replicas=FLAGS.child_num_replicas,
+    valid_set_size=FLAGS.valid_set_size,
+    image_shape=(FLAGS.height_img,FLAGS.width_img,3),
     dataset=FLAGS.dataset,
   )
 
@@ -208,6 +214,9 @@ def get_ops(images, labels):
     "train_acc": child_model.train_acc,
     "optimizer": child_model.optimizer,
     "num_train_batches": child_model.num_train_batches,
+    "train_angle_error": child_model.train_angle_error,
+    "train_cart_error": child_model.train_cart_error,
+    "train_mae": child_model.train_mae,
   }
 
   ops = {
@@ -258,8 +267,11 @@ def train():
             child_ops["grad_norm"],
             child_ops["train_acc"],
             child_ops["train_op"],
+            child_ops["train_angle_error"],
+            child_ops["train_cart_error"],
+            child_ops["train_mae"]
           ]
-          loss, lr, gn, tr_acc, _ = sess.run(run_ops)
+          loss, lr, gn, tr_acc, tr_op, tr_angle_error, tr_cart_error, tr_mae = sess.run(run_ops)
           global_step = sess.run(child_ops["global_step"])
 
           if FLAGS.child_sync_replicas:
@@ -279,6 +291,9 @@ def train():
                 tr_acc, FLAGS.batch_size)
             log_string += " mins={:<10.2f}".format(
                 float(curr_time - start_time) / 60)
+            log_string += "tr_ang_error={}".format(tr_angle_error)
+            log_string += "tr_cart_error={}".format(tr_cart_error)
+            log_string += "tr_cart_error={}".format(tr_mae)
             print(log_string)
 
           if actual_step % ops["eval_every"] == 0:
