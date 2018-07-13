@@ -44,7 +44,7 @@ DEFINE_string("dataset", "cifar", "'cifar' or 'fmnist' or 'stacking'")
 DEFINE_string("search_for", None, "Must be [macro|micro]")
 
 DEFINE_integer("batch_size", 32, "")
-DEFINE_integer("valid_set_size", 32, "")
+DEFINE_integer("valid_set_size", 128, "")
 DEFINE_integer("height_img", 32, "")
 DEFINE_integer("width_img", 32, "")
 DEFINE_boolean("regression",False, "Task is regression or classification")
