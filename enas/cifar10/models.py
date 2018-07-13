@@ -91,7 +91,7 @@ class Model(object):
         print("datadir------------", images["path"])
         file_names = glob.glob(os.path.expanduser(images["path"]))
         np.random.seed(0)
-        val_test_size = valid_set_size
+        val_test_size = self.valid_set_size
         train_data = file_names[val_test_size*2:]
         validation_data = file_names[val_test_size:val_test_size*2]
         test_data = file_names[:val_test_size]
