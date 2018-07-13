@@ -113,10 +113,10 @@ class Model(object):
                       shuffle=True)
         train_enqueuer.start(workers=1, max_queue_size=1)
         train_generator = lambda: iter(train_enqueuer.get())
-        train_dataset = Dataset.from_generator(train_generator,(tf.float32,tf.float32), (tf.TensorShape([None,32,32,15]),tf.TensorShape([None,None])))
+        train_dataset = Dataset.from_generator(train_generator,(tf.float32,tf.float32), (tf.TensorShape([None,image_shape[0],image_shape[1],15]),tf.TensorShape([None,None])))
         trainer = train_dataset.make_one_shot_iterator()
         x_train, y_train = trainer.get_next()
-        print("y shape--------------",y_train)
+        print("x shape--------------",x_train.shape)
         self.num_train_examples = len(train_data) * self.batch_size * estimated_images_per_example
         self.num_train_batches = (self.num_train_examples + self.batch_size - 1) // self.batch_size
         print("batch--------------------------",self.num_train_examples,self.num_train_batches)
