@@ -95,7 +95,9 @@ class Model(object):
         train_data = file_names[val_test_size*2:]
         validation_data = file_names[val_test_size:val_test_size*2]
         test_data = file_names[:val_test_size]
-        estimated_images_per_example = 5
+        # number of images to look at per example
+        # TODO(ahundt) currently there is a bug in one of these calculations, lowering images per example to reduce number of steps per epoch for now.
+        estimated_images_per_example = 1
         print("valid set size", val_test_size)
         self.num_train_examples = len(train_data) * self.batch_size * estimated_images_per_example
         self.num_train_batches = (self.num_train_examples + self.batch_size - 1) // self.batch_size
