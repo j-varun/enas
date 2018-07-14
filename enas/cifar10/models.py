@@ -99,9 +99,12 @@ class Model(object):
         # TODO(ahundt) currently there is a bug in one of these calculations, lowering images per example to reduce number of steps per epoch for now.
         estimated_images_per_example = 1
         print("valid set size", val_test_size)
-        self.num_train_examples = len(train_data) * self.batch_size * estimated_images_per_example
-        self.num_train_batches = (self.num_train_examples + self.batch_size - 1) // self.batch_size
-        output_shape = (32, 32, 3)
+        # TODO(ahundt) fix quick hack to proceed through epochs faster
+        # self.num_train_examples = len(train_data) * self.batch_size * estimated_images_per_example
+        # self.num_train_batches = (self.num_train_examples + self.batch_size - 1) // self.batch_size
+        self.num_train_examples = len(train_data) * estimated_images_per_example
+        self.num_train_batches = (self.num_train_examples + self.batch_size - 1) // (self.batch_size * self.batch_size)
+        # output_shape = (32, 32, 3)
         data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
         label_features = ['grasp_goal_xyz_aaxyz_nsc_8']
         training_generator = CostarBlockStackingSequence(
