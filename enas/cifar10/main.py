@@ -76,6 +76,7 @@ DEFINE_string("child_fixed_arc", None, "")
 DEFINE_boolean("child_use_aux_heads", False, "Should we use an aux head")
 DEFINE_boolean("child_sync_replicas", False, "To sync or not to sync.")
 DEFINE_boolean("child_lr_cosine", False, "Use cosine lr schedule")
+DEFINE_string("child_optimizer", "momentum", "Optimization algorithm, one of sgd, momentum or adam")
 
 DEFINE_float("controller_lr", 1e-3, "")
 DEFINE_float("controller_lr_dec_rate", 1.0, "")
@@ -98,6 +99,7 @@ DEFINE_boolean("controller_search_whole_channels", False, "")
 DEFINE_boolean("controller_sync_replicas", False, "To sync or not to sync.")
 DEFINE_boolean("controller_training", True, "")
 DEFINE_boolean("controller_use_critic", False, "")
+DEFINE_string("controller_optimizer", "adam", "Optimization algorithm, one of sgd, momentum or adam")
 
 DEFINE_integer("log_every", 50, "How many steps to log")
 DEFINE_integer("eval_every_epochs", 1, "How many epochs to eval")
@@ -136,7 +138,7 @@ def get_ops(images, labels):
     l2_reg=FLAGS.child_l2_reg,
     data_format=FLAGS.data_format,
     batch_size=FLAGS.batch_size,
-    clip_mode="norm",
+    clip_mode=FLAGS.child_optimizer,
     grad_bound=FLAGS.child_grad_bound,
     lr_init=FLAGS.child_lr,
     lr_dec_every=FLAGS.child_lr_dec_every,
@@ -178,7 +180,7 @@ def get_ops(images, labels):
       entropy_weight=FLAGS.controller_entropy_weight,
       bl_dec=FLAGS.controller_bl_dec,
       use_critic=FLAGS.controller_use_critic,
-      optim_algo="adam",
+      optim_algo=FLAGS.controller_optimizer,
       sync_replicas=FLAGS.controller_sync_replicas,
       num_aggregate=FLAGS.controller_num_aggregate,
       num_replicas=FLAGS.controller_num_replicas)
