@@ -349,9 +349,10 @@ def train():
 
                         print("Here are 10 architectures")
                         for _ in range(10):
-                            arc, acc = sess.run([
+                            arc, acc, c_loss = sess.run([
                                 controller_ops["sample_arc"],
                                 controller_ops["valid_acc"],
+                                controller_ops["loss"],
                             ])
                             if FLAGS.search_for == "micro":
                                 normal_arc, reduce_arc = arc
@@ -367,6 +368,7 @@ def train():
                                     print(np.reshape(arc[start: end], [-1]))
                                     start = end
                             print("val_acc={:<6.4f}".format(acc))
+                            print("loss={}".format(c_loss))
                             print("-" * 80)
 
                     print("Epoch {}: Eval".format(epoch))

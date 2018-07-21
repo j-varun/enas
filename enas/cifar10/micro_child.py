@@ -884,7 +884,25 @@ class MicroChild(Model):
         print("-" * 80)
         print("Build valid graph on shuffled data")
         if self.dataset == "stacking":
-            x_valid_shuffle, y_valid_shuffle = self.x_valid, self.y_valid
+            with tf.device("/cpu:0"):
+                if not shuffle:
+                    x_valid_shuffle, y_valid_shuffle = self.x_valid, self.y_valid
+                else:
+                    data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
+                    label_features = ['grasp_goal_xyz_aaxyz_nsc_8']
+                    validation_shuffle_generator = CostarBlockStackingSequence(
+                        self.validation_data, batch_size=self.batch_size, verbose=0,
+                        label_features_to_extract=label_features,
+                        data_features_to_extract=data_features, output_shape=self.image_shape, shuffle=True)
+                    validation_enqueuer = OrderedEnqueuer(
+                                  validation_generator,
+                                  use_multiprocessing=False,
+                                  shuffle=True)
+                    validation_enqueuer.start(workers=1, max_queue_size=1)
+                    validation_generator = lambda: iter(train_enqueuer.get())
+                    validation_dataset = Dataset.from_generator(validation_generator, (tf.float32, tf.float32), (tf.TensorShape([None, self.image_shape[0], self.image_shape[1], 15]), tf.TensorShape([None, None])))
+                    x_valid_shuffle, y_valid_shuffle = validation_dataset.make_one_shot_iterator().get_next()
+
         else:
             with tf.device("/cpu:0"):
                 # shuffled valid data: for choosing validation model
