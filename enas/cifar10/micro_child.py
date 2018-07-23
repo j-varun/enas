@@ -851,6 +851,8 @@ class MicroChild(Model):
                 self.valid_acc = grasp_metrics.grasp_acc(
                     self.y_valid, self.valid_preds, 0.1)
                 self.valid_acc = tf.reduce_sum(self.valid_acc)
+                self.valid_loss = tf.losses.mean_squared_error(
+                    labels=self.y_valid, predictions=self.valid_preds)
 
             else:
                 cast_type = tf.to_int32

@@ -200,6 +200,7 @@ def get_ops(images, labels):
             "entropy": controller_model.sample_entropy,
             "sample_arc": controller_model.sample_arc,
             "skip_rate": controller_model.skip_rate,
+            # "g_emb": controller_model.g_emb,
         }
     else:
         assert not FLAGS.controller_training, (
@@ -219,8 +220,8 @@ def get_ops(images, labels):
         "train_angle_error": child_model.train_angle_error,
         "train_cart_error": child_model.train_cart_error,
         "train_mae": child_model.train_mae,
-        "train_preds": child_model.train_preds,
-        "train_label": child_model.y_train,
+        "train_preds": child_model.train_preds[0],
+        "train_label": child_model.y_train[0],
     }
 
     ops = {
@@ -324,6 +325,7 @@ def train():
                                 controller_ops["grad_norm"],
                                 controller_ops["valid_acc"],
                                 controller_ops["baseline"],
+                                # controller_ops["g_emb"],
                                 controller_ops["skip_rate"],
                                 controller_ops["train_op"],
                             ]
@@ -345,6 +347,7 @@ def train():
                                 log_string += " bl={:<5.2f}".format(bl)
                                 log_string += " mins={:<.2f}".format(
                                     float(curr_time - start_time) / 60)
+                                # log_string += "\n g_emb = {}".format(g_emb)
                                 print(log_string)
 
                         print("Here are 10 architectures")
