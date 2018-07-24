@@ -287,13 +287,13 @@ def train():
                 loss, lr, gn, tr_acc, tr_op, tr_angle_error, tr_cart_error, tr_mae, tr_preds, tr_label = sess.run(
                     run_ops)
                 global_step = sess.run(child_ops["global_step"])
-                print("global step", global_step)
+                # print("global step", global_step)
 
                 if FLAGS.child_sync_replicas:
                     actual_step = global_step * FLAGS.num_aggregate
                 else:
                     actual_step = global_step
-                print("actual_step", actual_step)
+                # print("actual_step", actual_step)
                 epoch = actual_step // ops["num_train_batches"]
                 curr_time = time.time()
                 if global_step % FLAGS.log_every == 0:
