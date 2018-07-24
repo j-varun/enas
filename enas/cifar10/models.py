@@ -98,7 +98,7 @@ class Model(object):
                 # number of images to look at per example
                 # TODO(ahundt) currently there is a bug in one of these calculations, lowering images per example to reduce number of steps per epoch for now.
                 estimated_images_per_example = 1
-                        print("valid set size", val_test_size)
+                print("valid set size", val_test_size)
                 # TODO(ahundt) fix quick hack to proceed through epochs faster
                 # self.num_train_examples = len(train_data) * self.batch_size * estimated_images_per_example
                 # self.num_train_batches = (self.num_train_examples + self.batch_size - 1) // self.batch_size
