@@ -478,7 +478,7 @@ if __name__ == "__main__":
                     training_generator,
                     use_multiprocessing=False,
                     shuffle=True)
-    enqueuer.start(workers=1, max_queue_size=1)
+    enqueuer.start(workers=10, max_queue_size=100)
     batch_size = 2
     # generator = iter(enqueuer.get())
     generator = lambda: iter(enqueuer.get())
