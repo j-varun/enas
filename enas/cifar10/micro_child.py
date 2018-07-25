@@ -16,7 +16,7 @@ from enas.cifar10.image_ops import batch_norm_with_mask
 from enas.cifar10.image_ops import relu
 from enas.cifar10.image_ops import max_pool
 from enas.cifar10.image_ops import drop_path
-from enas.cifar10.image_ops import global_avg_pool
+from enas.cifar10.image_ops import global_max_pool
 
 from enas.utils import count_model_params
 from enas.utils import get_train_ops
@@ -343,7 +343,7 @@ class MicroChild(Model):
                             aux_logits = tf.nn.relu(aux_logits)
 
                         with tf.variable_scope("fc"):
-                            aux_logits = global_avg_pool(aux_logits,
+                            aux_logits = global_max_pool(aux_logits,
                                                          data_format=self.data_format)
                             inp_c = aux_logits.get_shape()[1].value
                             w = create_weight("w", [inp_c, self.num_classes])
@@ -357,7 +357,7 @@ class MicroChild(Model):
                     print("Aux head uses {0} params".format(self.num_aux_vars))
 
             x = tf.nn.relu(x)
-            x = global_avg_pool(x, data_format=self.data_format)
+            x = global_max_pool(x, data_format=self.data_format)
             if is_training and self.keep_prob is not None and self.keep_prob < 1.0:
                 x = tf.nn.dropout(x, self.keep_prob)
             with tf.variable_scope("fc"):

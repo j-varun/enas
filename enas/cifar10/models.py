@@ -9,7 +9,7 @@ from enas.cifar10.image_ops import fully_connected
 from enas.cifar10.image_ops import batch_norm
 from enas.cifar10.image_ops import relu
 from enas.cifar10.image_ops import max_pool
-from enas.cifar10.image_ops import global_avg_pool
+from enas.cifar10.image_ops import global_max_pool
 
 from enas.utils import count_model_params
 from enas.utils import get_train_ops

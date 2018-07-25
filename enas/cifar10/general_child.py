@@ -15,7 +15,7 @@ from enas.cifar10.image_ops import batch_norm
 from enas.cifar10.image_ops import batch_norm_with_mask
 from enas.cifar10.image_ops import relu
 from enas.cifar10.image_ops import max_pool
-from enas.cifar10.image_ops import global_avg_pool
+from enas.cifar10.image_ops import global_max_pool
 
 from enas.utils import count_model_params
 from enas.utils import get_train_ops
@@ -194,7 +194,7 @@ class GeneralChild(Model):
       layers = []
 
       out_filters = self.out_filters
-      C = self._get_C(images) 
+      C = self._get_C(images)
       with tf.variable_scope("stem_conv"):
         w = create_weight("w", [C, C, C, out_filters])
         x = tf.nn.conv2d(images, w, [1, 1, 1, 1], "SAME", data_format=self.data_format)
@@ -229,7 +229,7 @@ class GeneralChild(Model):
           start_idx += 2 * self.num_branches + layer_id
         print(layers[-1])
 
-      x = global_avg_pool(x, data_format=self.data_format)
+      x = global_max_pool(x, data_format=self.data_format)
       if is_training:
         x = tf.nn.dropout(x, self.keep_prob)
       with tf.variable_scope("fc"):
