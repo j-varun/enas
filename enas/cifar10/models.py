@@ -9,7 +9,7 @@ from enas.cifar10.image_ops import fully_connected
 from enas.cifar10.image_ops import batch_norm
 from enas.cifar10.image_ops import relu
 from enas.cifar10.image_ops import max_pool
-from enas.cifar10.image_ops import global_avg_pool
+from enas.cifar10.image_ops import global_max_pool
 
 from enas.utils import count_model_params
 from enas.utils import get_train_ops
@@ -116,7 +116,7 @@ class Model(object):
                     training_generator,
                     use_multiprocessing=False,
                     shuffle=True)
-                train_enqueuer.start(workers=1, max_queue_size=1)
+                train_enqueuer.start(workers=10, max_queue_size=100)
 
                 def train_generator(): return iter(train_enqueuer.get())
 
@@ -194,7 +194,7 @@ class Model(object):
                     validation_generator,
                     use_multiprocessing=False,
                     shuffle=True)
-                validation_enqueuer.start(workers=1, max_queue_size=1)
+                validation_enqueuer.start(workers=10, max_queue_size=100)
 
                 def validation_generator(): return iter(train_enqueuer.get())
                 validation_dataset = Dataset.from_generator(validation_generator, (tf.float32, tf.float32), (tf.TensorShape(
@@ -239,7 +239,7 @@ class Model(object):
                     test_generator,
                     use_multiprocessing=False,
                     shuffle=True)
-                test_enqueuer.start(workers=1, max_queue_size=1)
+                test_enqueuer.start(workers=10, max_queue_size=100)
 
                 def test_generator(): return iter(train_enqueuer.get())
                 test_dataset = Dataset.from_generator(test_generator, (tf.float32, tf.float32), (tf.TensorShape(
