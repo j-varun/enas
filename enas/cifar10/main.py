@@ -185,7 +185,8 @@ def get_ops(images, labels):
             optim_algo=FLAGS.controller_optimizer,
             sync_replicas=FLAGS.controller_sync_replicas,
             num_aggregate=FLAGS.controller_num_aggregate,
-            num_replicas=FLAGS.controller_num_replicas)
+            num_replicas=FLAGS.controller_num_replicas,
+            dataset=FLAGS.dataset)
 
         child_model.connect_controller(controller_model)
         controller_model.build_trainer(child_model)
@@ -202,6 +203,8 @@ def get_ops(images, labels):
             "entropy": controller_model.sample_entropy,
             "sample_arc": controller_model.sample_arc,
             "skip_rate": controller_model.skip_rate,
+            "reward": controller_model.reward,
+            "mse": controller_model.mse,
             # "g_emb": controller_model.g_emb,
         }
     else:
@@ -287,17 +290,16 @@ def train():
                 loss, lr, gn, tr_acc, tr_op, tr_angle_error, tr_cart_error, tr_mae, tr_preds, tr_label = sess.run(
                     run_ops)
                 global_step = sess.run(child_ops["global_step"])
-                # print("global step", global_step)
+                print("global step", global_step, end="\r")
 
                 if FLAGS.child_sync_replicas:
                     actual_step = global_step * FLAGS.num_aggregate
                 else:
                     actual_step = global_step
-                # print("actual_step", actual_step)
                 epoch = actual_step // ops["num_train_batches"]
                 curr_time = time.time()
                 if global_step % FLAGS.log_every == 0:
-                    log_string = ""
+                    log_string = "\n"
                     log_string += "epoch={:<6d}".format(epoch)
                     log_string += "ch_step={:<6d}".format(global_step)
                     log_string += " loss={:<8.6f}".format(loss)
@@ -307,11 +309,12 @@ def train():
                         tr_acc, FLAGS.batch_size)
                     log_string += " mins={:<10.2f}".format(
                         float(curr_time - start_time) / 60)
-                    log_string += "\ntr_ang_error={}".format(tr_angle_error)
-                    log_string += " tr_cart_error={}".format(tr_cart_error)
-                    log_string += " tr_mae={}".format(tr_mae)
-                    log_string += "\ntr_preds={}".format(tr_preds)
-                    log_string += "\ntr_label={}".format(tr_label)
+                    if FLAGS.dataset == "stacking":
+                        log_string += "\ntr_ang_error={}".format(tr_angle_error)
+                        log_string += " tr_cart_error={}".format(tr_cart_error)
+                        log_string += " tr_mae={}".format(tr_mae)
+                        log_string += "\ntr_preds={}".format(tr_preds)
+                        log_string += "\ntr_label={}".format(tr_label)
                     print(log_string)
 
                 if actual_step % ops["eval_every"] == 0:
@@ -327,18 +330,18 @@ def train():
                                 controller_ops["grad_norm"],
                                 controller_ops["valid_acc"],
                                 controller_ops["baseline"],
-                                # controller_ops["g_emb"],
+                                controller_ops["reward"],
                                 controller_ops["skip_rate"],
                                 controller_ops["train_op"],
                             ]
-                            loss, entropy, lr, gn, val_acc, bl, skip, _ = sess.run(
+                            loss, entropy, lr, gn, val_acc, bl, reward, skip, _ = sess.run(
                                 run_ops)
                             controller_step = sess.run(
                                 controller_ops["train_step"])
 
                             if ct_step % FLAGS.log_every == 0:
                                 curr_time = time.time()
-                                log_string = ""
+                                log_string = "\n"
                                 log_string += "ctrl_step={:<6d}".format(
                                     controller_step)
                                 log_string += " loss={:<7.3f}".format(loss)
@@ -349,15 +352,17 @@ def train():
                                 log_string += " bl={:<5.2f}".format(bl)
                                 log_string += " mins={:<.2f}".format(
                                     float(curr_time - start_time) / 60)
+                                log_string += " rw ={}".format(reward)
                                 # log_string += "\n g_emb = {}".format(g_emb)
                                 print(log_string)
 
                         print("Here are 10 architectures")
                         for _ in range(10):
-                            arc, acc, c_loss = sess.run([
+                            arc, acc, c_loss, mse = sess.run([
                                 controller_ops["sample_arc"],
                                 controller_ops["valid_acc"],
                                 controller_ops["loss"],
+                                controller_ops["mse"],
                             ])
                             if FLAGS.search_for == "micro":
                                 normal_arc, reduce_arc = arc
@@ -374,6 +379,8 @@ def train():
                                     start = end
                             print("val_acc={:<6.4f}".format(acc))
                             print("loss={}".format(c_loss))
+                            if dataset == "stacking":
+                                print("mse={}".format(mse))
                             print("-" * 80)
 
                     print("Epoch {}: Eval".format(epoch))

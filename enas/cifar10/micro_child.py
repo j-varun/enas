@@ -785,7 +785,7 @@ class MicroChild(Model):
             cast_type = tf.to_int32
 
         if self.dataset == "stacking":
-            self.train_preds = logits
+            self.train_preds = tf.nn.sigmoid(logits)
             self.train_acc = grasp_metrics.grasp_acc(
                 self.y_train, self.train_preds, 0.1)
             print("train_acc--------------", self.train_acc)
@@ -809,6 +809,9 @@ class MicroChild(Model):
             self.train_acc = tf.equal(self.train_preds, self.y_train)
             self.train_acc = cast_type(self.train_acc)
             self.train_acc = tf.reduce_sum(self.train_acc)
+            self.train_cart_error = tf.zeros([1])
+            self.train_angle_error = tf.zeros([1])
+            self.train_mae = tf.zeros([1])
 
         tf_variables = [
             var for var in tf.trainable_variables() if (
@@ -843,16 +846,15 @@ class MicroChild(Model):
         if self.x_valid is not None:
             print("-" * 80)
             print("Build valid graph")
-            logits = tf.nn.sigmoid(self._model(
-                self.x_valid, False, reuse=True))
+            logits = self._model(
+                self.x_valid, False, reuse=True)
             if self.dataset == "stacking":
+                logits = tf.nn.sigmoid(logits)
                 cast_type = tf.to_float
                 self.valid_preds = logits
                 self.valid_acc = grasp_metrics.grasp_acc(
                     self.y_valid, self.valid_preds, 0.1)
                 self.valid_acc = tf.reduce_sum(self.valid_acc)
-                self.valid_loss = tf.losses.mean_squared_error(
-                    labels=self.y_valid, predictions=self.valid_preds)
 
             else:
                 cast_type = tf.to_int32
@@ -866,8 +868,9 @@ class MicroChild(Model):
     def _build_test(self):
         print("-" * 80)
         print("Build test graph")
-        logits = tf.nn.sigmoid(self._model(self.x_test, False, reuse=True))
+        logits = self._model(self.x_test, False, reuse=True)
         if self.dataset == "stacking":
+            logits = tf.nn.sigmoid(logits)
             cast_type = tf.to_float
             self.test_preds = logits
             self.test_acc = grasp_metrics.grasp_acc(
@@ -934,14 +937,17 @@ class MicroChild(Model):
                     x_valid_shuffle = tf.map_fn(
                         _pre_process, x_valid_shuffle, back_prop=False)
 
-        logits = tf.nn.sigmoid(self._model(
-            x_valid_shuffle, is_training=True, reuse=True))
+        logits = self._model(
+            x_valid_shuffle, is_training=True, reuse=True)
         if self.dataset == "stacking":
+            logits = tf.nn.sigmoid(logits)
             cast_type = tf.to_float
             valid_shuffle_preds = logits
             self.valid_shuffle_acc = grasp_metrics.grasp_acc(
                 y_valid_shuffle, valid_shuffle_preds, 0.1)
             self.valid_shuffle_acc = tf.reduce_sum(self.valid_shuffle_acc)
+            self.valid_loss = tf.reduce_mean(tf.losses.mean_squared_error(
+                    labels=self.y_valid, predictions=self.valid_preds))
         else:
             cast_type = tf.to_int32
             valid_shuffle_preds = tf.argmax(logits, axis=1)
