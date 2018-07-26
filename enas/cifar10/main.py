@@ -379,7 +379,7 @@ def train():
                                     start = end
                             print("val_acc={:<6.4f}".format(acc))
                             print("loss={}".format(c_loss))
-                            if dataset == "stacking":
+                            if FLAGS.dataset == "stacking":
                                 print("mse={}".format(mse))
                             print("-" * 80)
 
