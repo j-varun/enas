@@ -110,7 +110,7 @@ class Model(object):
                 training_generator = CostarBlockStackingSequence(
                     train_data, batch_size=batch_size, verbose=0,
                     label_features_to_extract=label_features,
-                    data_features_to_extract=data_features, output_shape=self.image_shape, shuffle = True)
+                    data_features_to_extract=data_features, output_shape=self.image_shape, shuffle=True)
 
                 train_enqueuer = OrderedEnqueuer(
                     training_generator,
@@ -125,10 +125,6 @@ class Model(object):
                 trainer = train_dataset.make_one_shot_iterator()
                 x_train, y_train = trainer.get_next()
                 print("x shape--------------", x_train.shape)
-                self.num_train_examples = len(
-                    train_data) * self.batch_size * estimated_images_per_example
-                self.num_train_batches = (
-                    self.num_train_examples + self.batch_size - 1) // self.batch_size
                 print("batch--------------------------",
                       self.num_train_examples, self.num_train_batches)
                 self.num_classes = 8
