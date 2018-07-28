@@ -103,7 +103,7 @@ class Model(object):
                 # self.num_train_examples = len(train_data) * self.batch_size * estimated_images_per_example
                 # self.num_train_batches = (self.num_train_examples + self.batch_size - 1) // self.batch_size
                 self.num_train_examples = len(train_data) * estimated_images_per_example
-                self.num_train_batches = (self.num_train_examples + self.batch_size - 1) // (self.batch_size * self.batch_size)
+                self.num_train_batches = (self.num_train_examples + self.batch_size - 1) // self.batch_size
                 # output_shape = (32, 32, 3)
                 data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
                 label_features = ['grasp_goal_xyz_aaxyz_nsc_8']
