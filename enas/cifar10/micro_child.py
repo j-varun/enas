@@ -964,7 +964,7 @@ class MicroChild(Model):
             cast_type = tf.to_float
             self.valid_shuffle_preds = logits
             self.valid_shuffle_acc = grasp_metrics.grasp_acc(
-                y_valid_shuffle, valid_shuffle_preds, 0.1)
+                self.y_valid_shuffle, self.valid_shuffle_preds, 0.1)
             self.valid_shuffle_acc = tf.reduce_sum(self.valid_shuffle_acc)
             self.valid_loss = tf.reduce_mean(tf.losses.mean_squared_error(
                     labels=self.y_valid, predictions=valid_preds))
@@ -980,8 +980,8 @@ class MicroChild(Model):
 
         else:
             cast_type = tf.to_int32
-            valid_shuffle_preds = tf.argmax(logits, axis=1)
-            valid_shuffle_preds = cast_type(valid_shuffle_preds)
+            self.valid_shuffle_preds = tf.argmax(logits, axis=1)
+            self.valid_shuffle_preds = cast_type(self.valid_shuffle_preds)
             self.valid_shuffle_acc = tf.equal(valid_shuffle_preds, y_valid_shuffle)
             self.valid_shuffle_acc = cast_type(self.valid_shuffle_acc)
             self.valid_shuffle_acc = tf.reduce_sum(self.valid_shuffle_acc)
