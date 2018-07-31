@@ -855,6 +855,16 @@ class MicroChild(Model):
                 self.valid_acc = grasp_metrics.grasp_acc(
                     self.y_valid, self.valid_preds, 0.1)
                 self.valid_acc = tf.reduce_sum(self.valid_acc)
+                self.valid_cart_error = grasp_metrics.cart_error(
+                  self.y_valid, self.valid_preds)
+                self.valid_cart_error = tf.reduce_mean(self.valid_cart_error)
+                self.valid_angle_error = grasp_metrics.angle_error(
+                    self.y_valid, self.valid_preds)
+                self.valid_angle_error = tf.reduce_mean(self.valid_angle_error)
+                self.valid_mae = tf.metrics.mean_absolute_error(
+                    self.y_valid, self.valid_preds)
+                self.valid_mae = tf.reduce_mean(self.valid_mae)
+
 
             else:
                 cast_type = tf.to_int32
@@ -876,6 +886,16 @@ class MicroChild(Model):
             self.test_acc = grasp_metrics.grasp_acc(
                 self.y_test, self.test_preds, 0.1)
             self.test_acc = tf.reduce_sum(self.test_acc)
+            self.test_cart_error = grasp_metrics.cart_error(
+                self.y_test, self.test_preds)
+            self.test_cart_error = tf.reduce_mean(self.test_cart_error)
+            self.test_angle_error = grasp_metrics.angle_error(
+                self.y_test, self.test_preds)
+            self.test_angle_error = tf.reduce_mean(self.test_angle_error)
+            self.test_mae = tf.metrics.mean_absolute_error(
+                self.y_test, self.test_preds)
+            self.test_mae = tf.reduce_mean(self.test_mae)
+
         else:
             cast_type = tf.to_int32
             self.test_preds = tf.argmax(logits, axis=1)
@@ -942,12 +962,22 @@ class MicroChild(Model):
         if self.dataset == "stacking":
             logits = tf.nn.sigmoid(logits)
             cast_type = tf.to_float
-            valid_shuffle_preds = logits
+            self.valid_shuffle_preds = logits
             self.valid_shuffle_acc = grasp_metrics.grasp_acc(
                 y_valid_shuffle, valid_shuffle_preds, 0.1)
             self.valid_shuffle_acc = tf.reduce_sum(self.valid_shuffle_acc)
             self.valid_loss = tf.reduce_mean(tf.losses.mean_squared_error(
-                    labels=self.y_valid, predictions=self.valid_preds))
+                    labels=self.y_valid, predictions=valid_preds))
+            self.valid_shuffle_cart_error = grasp_metrics.cart_error(
+                self.y_valid_shuffle, self.valid_shuffle_preds)
+            self.valid_shuffle_cart_error = tf.reduce_mean(self.valid_shuffle_cart_error)
+            self.valid_shuffle_angle_error = grasp_metrics.angle_error(
+                self.y_valid_shuffle, self.valid_shuffle_preds)
+            self.valid_shuffle_angle_error = tf.reduce_mean(self.valid_shuffle_angle_error)
+            self.valid_shuffle_mae = tf.metrics.mean_absolute_error(
+                self.y_valid_shuffle, self.valid_shuffle_preds)
+            self.valid_shuffle_mae = tf.reduce_mean(self.valid_shuffle_mae)
+
         else:
             cast_type = tf.to_int32
             valid_shuffle_preds = tf.argmax(logits, axis=1)

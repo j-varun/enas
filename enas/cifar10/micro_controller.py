@@ -250,10 +250,16 @@ class MicroController(Controller):
         if self.dataset == "stacking":
             self.reward = -child_model.valid_loss
             self.mse = child_model.valid_loss
+            self.mae = child_model.valid_shuffle_mae
+            self.angle_error = child_model.valid_shuffle_angle_error
+            self.cart_error = child_model.valid_shuffle_cart_error
 
         else:
             self.reward = self.valid_acc
             self.mse = tf.zeros([1])
+            self.mae = tf.zeros([1])
+            self.angle_error = tf.zeros([1])
+            self.cart_error = tf.zeros([1])
 
         if self.entropy_weight is not None:
             self.reward += self.entropy_weight * self.sample_entropy

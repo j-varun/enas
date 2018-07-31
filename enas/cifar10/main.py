@@ -205,6 +205,9 @@ def get_ops(images, labels):
             "skip_rate": controller_model.skip_rate,
             "reward": controller_model.reward,
             "mse": controller_model.mse,
+            "cart_error": controller_model.cart_error,
+            "angle_error": controller_model.angle_error,
+            "mae": controller_model.mae,
             # "g_emb": controller_model.g_emb,
         }
     else:
@@ -331,10 +334,13 @@ def train():
                                 controller_ops["valid_acc"],
                                 controller_ops["baseline"],
                                 controller_ops["reward"],
+                                controller_ops["cart_error"],
+                                controller_ops["angle_error"],
+                                controller_ops["mae"],
                                 controller_ops["skip_rate"],
                                 controller_ops["train_op"],
                             ]
-                            loss, entropy, lr, gn, val_acc, bl, reward, skip, _ = sess.run(
+                            loss, entropy, lr, gn, val_acc, bl, reward, cart_error, angle_error, mae, skip, _ = sess.run(
                                 run_ops)
                             controller_step = sess.run(
                                 controller_ops["train_step"])
@@ -353,16 +359,23 @@ def train():
                                 log_string += " mins={:<.2f}".format(
                                     float(curr_time - start_time) / 60)
                                 log_string += " rw ={}".format(reward)
+                                if FLAGS.dataset == "stacking":
+                                    log_string += "\ncart_error={}".format(cart_error)
+                                    log_string += "\nangle_error={}".format(angle_error)
+                                    log_string += "\nmae={}".format(mae)
                                 # log_string += "\n g_emb = {}".format(g_emb)
                                 print(log_string)
 
                         print("Here are 10 architectures")
                         for _ in range(10):
-                            arc, acc, c_loss, mse = sess.run([
+                            arc, acc, c_loss, mse, selected_cart_error, selected_angle_error, selected_mae = sess.run([
                                 controller_ops["sample_arc"],
                                 controller_ops["valid_acc"],
                                 controller_ops["loss"],
                                 controller_ops["mse"],
+                                controller_ops["cart_error"],
+                                controller_ops["angle_error"],
+                                controller_ops["mae"],
                             ])
                             if FLAGS.search_for == "micro":
                                 normal_arc, reduce_arc = arc
@@ -381,6 +394,9 @@ def train():
                             print("loss={}".format(c_loss))
                             if FLAGS.dataset == "stacking":
                                 print("mse={}".format(mse))
+                                print("cart_error={}".format(selected_cart_error))
+                                print("angle_error={}".format(selected_angle_error))
+                                print("mae={}".format(selected_mae))
                             print("-" * 80)
 
                     print("Epoch {}: Eval".format(epoch))
