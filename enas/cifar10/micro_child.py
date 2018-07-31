@@ -911,7 +911,7 @@ class MicroChild(Model):
         if self.dataset == "stacking":
             with tf.device("/cpu:0"):
                 if not shuffle:
-                    x_valid_shuffle, y_valid_shuffle = self.x_valid, self.y_valid
+                    self.x_valid_shuffle, self.y_valid_shuffle = self.x_valid, self.y_valid
                 else:
                     data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
                     label_features = ['grasp_goal_xyz_aaxyz_nsc_8']
@@ -934,7 +934,7 @@ class MicroChild(Model):
                 if not shuffle and self.data_format == "NCHW":
                     self.images["valid_original"] = np.transpose(
                         self.images["valid_original"], [0, 3, 1, 2])
-                x_valid_shuffle, y_valid_shuffle = tf.train.shuffle_batch(
+                self.x_valid_shuffle, self.y_valid_shuffle = tf.train.shuffle_batch(
                     [self.images["valid_original"], self.labels["valid_original"]],
                     batch_size=self.batch_size,
                     capacity=25000,
@@ -958,7 +958,7 @@ class MicroChild(Model):
                         _pre_process, x_valid_shuffle, back_prop=False)
 
         logits = self._model(
-            x_valid_shuffle, is_training=True, reuse=True)
+            self.x_valid_shuffle, is_training=True, reuse=True)
         if self.dataset == "stacking":
             logits = tf.nn.sigmoid(logits)
             cast_type = tf.to_float
@@ -967,7 +967,7 @@ class MicroChild(Model):
                 self.y_valid_shuffle, self.valid_shuffle_preds, 0.1)
             self.valid_shuffle_acc = tf.reduce_sum(self.valid_shuffle_acc)
             self.valid_loss = tf.reduce_mean(tf.losses.mean_squared_error(
-                    labels=self.y_valid, predictions=valid_preds))
+                    labels=self.y_valid_shuffle, predictions=self.valid_shuffle_preds))
             self.valid_shuffle_cart_error = grasp_metrics.cart_error(
                 self.y_valid_shuffle, self.valid_shuffle_preds)
             self.valid_shuffle_cart_error = tf.reduce_mean(self.valid_shuffle_cart_error)
