@@ -59,6 +59,7 @@ class MicroChild(Model):
                  name="child",
                  valid_set_size=32,
                  image_shape=(32, 32, 3),
+                 translation_only=False,
                  dataset="cifar",
                  **kwargs
                  ):
@@ -84,6 +85,7 @@ class MicroChild(Model):
             name=name,
             valid_set_size=valid_set_size,
             image_shape=image_shape,
+            translation_only=translation_only,
             dataset=dataset)
 
         if self.data_format == "NHWC":
@@ -107,6 +109,7 @@ class MicroChild(Model):
         self.num_layers = num_layers
         self.num_cells = num_cells
         self.fixed_arc = fixed_arc
+        self.translation_only = translation_only
 
         self.global_step = tf.Variable(
             0, dtype=tf.int32, trainable=False, name="global_step")
@@ -794,9 +797,12 @@ class MicroChild(Model):
             self.train_cart_error = grasp_metrics.cart_error(
                 self.y_train, self.train_preds)
             self.train_cart_error = tf.reduce_mean(self.train_cart_error)
-            self.train_angle_error = grasp_metrics.angle_error(
-                self.y_train, self.train_preds)
-            self.train_angle_error = tf.reduce_mean(self.train_angle_error)
+            if self.translation_only is True:
+                self.train_angle_error = tf.zeros([1])
+            else:
+                self.train_angle_error = grasp_metrics.angle_error(
+                    self.y_train, self.train_preds)
+                self.train_angle_error = tf.reduce_mean(self.train_angle_error)
             self.train_mae = tf.metrics.mean_absolute_error(
                 self.y_train, self.train_preds)
             self.train_mae = tf.reduce_mean(self.train_mae)
@@ -858,13 +864,15 @@ class MicroChild(Model):
                 self.valid_cart_error = grasp_metrics.cart_error(
                   self.y_valid, self.valid_preds)
                 self.valid_cart_error = tf.reduce_mean(self.valid_cart_error)
-                self.valid_angle_error = grasp_metrics.angle_error(
-                    self.y_valid, self.valid_preds)
-                self.valid_angle_error = tf.reduce_mean(self.valid_angle_error)
+                if self.translation_only is True:
+                    self.valid_angle_error = tf.zeros([1])
+                else:
+                    self.valid_angle_error = grasp_metrics.angle_error(
+                        self.y_valid, self.valid_preds)
+                    self.valid_angle_error = tf.reduce_mean(self.valid_angle_error)
                 self.valid_mae = tf.metrics.mean_absolute_error(
                     self.y_valid, self.valid_preds)
                 self.valid_mae = tf.reduce_mean(self.valid_mae)
-
 
             else:
                 cast_type = tf.to_int32
@@ -889,9 +897,12 @@ class MicroChild(Model):
             self.test_cart_error = grasp_metrics.cart_error(
                 self.y_test, self.test_preds)
             self.test_cart_error = tf.reduce_mean(self.test_cart_error)
-            self.test_angle_error = grasp_metrics.angle_error(
-                self.y_test, self.test_preds)
-            self.test_angle_error = tf.reduce_mean(self.test_angle_error)
+            if self.translation_only is True:
+                self.test_angle_error = tf.zeros([1])
+            else:
+                self.test_angle_error = grasp_metrics.angle_error(
+                    self.y_test, self.test_preds)
+                self.test_angle_error = tf.reduce_mean(self.test_angle_error)
             self.test_mae = tf.metrics.mean_absolute_error(
                 self.y_test, self.test_preds)
             self.test_mae = tf.reduce_mean(self.test_mae)
@@ -924,8 +935,9 @@ class MicroChild(Model):
                                   use_multiprocessing=False,
                                   shuffle=True)
                     validation_enqueuer.start(workers=10, max_queue_size=100)
+
                     def validation_generator(): return iter(train_enqueuer.get())
-                    validation_dataset = Dataset.from_generator(validation_generator, (tf.float32, tf.float32), (tf.TensorShape([None, self.image_shape[0], self.image_shape[1], 15]), tf.TensorShape([None, None])))
+                    validation_dataset = Dataset.from_generator(validation_generator, (tf.float32, tf.float32), (tf.TensorShape([None, self.image_shape[0], self.image_shape[1], self.data_features_len]), tf.TensorShape([None, None])))
                     x_valid_shuffle, y_valid_shuffle = validation_dataset.make_one_shot_iterator().get_next()
 
         else:
@@ -971,9 +983,12 @@ class MicroChild(Model):
             self.valid_shuffle_cart_error = grasp_metrics.cart_error(
                 self.y_valid_shuffle, self.valid_shuffle_preds)
             self.valid_shuffle_cart_error = tf.reduce_mean(self.valid_shuffle_cart_error)
-            self.valid_shuffle_angle_error = grasp_metrics.angle_error(
-                self.y_valid_shuffle, self.valid_shuffle_preds)
-            self.valid_shuffle_angle_error = tf.reduce_mean(self.valid_shuffle_angle_error)
+            if self.translation_only is True:
+                self.valid_shuffle_angle_error = tf.zeros([1])
+            else:
+                self.valid_shuffle_angle_error = grasp_metrics.angle_error(
+                    self.y_valid_shuffle, self.valid_shuffle_preds)
+                self.valid_shuffle_angle_error = tf.reduce_mean(self.valid_shuffle_angle_error)
             self.valid_shuffle_mae = tf.metrics.mean_absolute_error(
                 self.y_valid_shuffle, self.valid_shuffle_preds)
             self.valid_shuffle_mae = tf.reduce_mean(self.valid_shuffle_mae)
