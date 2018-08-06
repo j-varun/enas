@@ -115,7 +115,7 @@ class Model(object):
                 else:
                     data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
                     label_features = ['grasp_goal_xyz_aaxyz_nsc_8']
-                    self.num_classes = 3
+                    self.num_classes = 8
                     self.data_features_len = 15
                 training_generator = CostarBlockStackingSequence(
                     train_data, batch_size=batch_size, verbose=0,
@@ -137,6 +137,7 @@ class Model(object):
                 print("x shape--------------", x_train.shape)
                 print("batch--------------------------",
                       self.num_train_examples, self.num_train_batches)
+                print("y shape--------------", y_train.shape)
                 self.x_train = x_train
                 self.y_train = y_train
 

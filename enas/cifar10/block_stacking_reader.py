@@ -479,7 +479,7 @@ class CostarBlockStackingSequence(Sequence):
             else:
                 raise ValueError('Unsupported data input: ' + str(self.data_features_to_extract))
 
-            if (self.data_features_to_extract is not None and 'image_0_image_n_vec_xyz_aaxyz_nsc_15' in self.data_features_to_extract):
+            if (self.data_features_to_extract is not None and x in self.data_features_to_extract for x in ['image_0_image_n_vec_xyz_aaxyz_nsc_15', 'image_0_image_n_vec_xyz_10']):
                 # make the giant data cube if it is requested
                 X = concat_images_with_tiled_vector_np(X[:2], X[2:])
 
