@@ -968,6 +968,8 @@ class MicroChild(Model):
             self.test_mae = tf.metrics.mean_absolute_error(
                 self.y_test, self.test_preds)
             self.test_mae = tf.reduce_mean(self.test_mae)
+            self.test_loss = tf.reduce_mean(tf.losses.mean_squared_error(
+                    labels=self.y_test, predictions=self.test_preds))
 
         else:
             cast_type = tf.to_int32
