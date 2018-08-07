@@ -108,10 +108,10 @@ class Model(object):
                 self.num_train_batches = (self.num_train_examples + self.batch_size - 1) // self.batch_size
                 # output_shape = (32, 32, 3)
                 if self.translation_only is True:
-                    data_features = ['image_0_image_n_vec_xyz_10']
+                    data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
                     label_features = ['grasp_goal_xyz_3']
                     self.num_classes = 3
-                    self.data_features_len = 10
+                    self.data_features_len = 15
                 else:
                     data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
                     label_features = ['grasp_goal_xyz_aaxyz_nsc_8']

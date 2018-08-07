@@ -295,7 +295,7 @@ def train():
                 loss, lr, gn, tr_acc, tr_op, tr_angle_error, tr_cart_error, tr_mae, tr_preds, tr_label = sess.run(
                     run_ops)
                 global_step = sess.run(child_ops["global_step"])
-                print("global step", global_step, end="\r")
+                print("---------------global step", global_step, end="\r")
 
                 if FLAGS.child_sync_replicas:
                     actual_step = global_step * FLAGS.num_aggregate
@@ -315,7 +315,7 @@ def train():
                     log_string += " mins={:<10.2f}".format(
                         float(curr_time - start_time) / 60)
                     if FLAGS.dataset == "stacking":
-                        if translation_only is False:
+                        if FLAGS.translation_only is False:
                             log_string += "\ntr_ang_error={}".format(tr_angle_error)
                         log_string += " tr_cart_error={}".format(tr_cart_error)
                         log_string += " tr_mae={}".format(tr_mae)
@@ -364,7 +364,7 @@ def train():
                                 log_string += " rw ={}".format(reward)
                                 if FLAGS.dataset == "stacking":
                                     log_string += "\ncart_error={}".format(cart_error)
-                                    if translation_only is False:
+                                    if FLAGS.translation_only is False:
                                         log_string += "\nangle_error={}".format(angle_error)
                                     log_string += "\nmae={}".format(mae)
                                 # log_string += "\n g_emb = {}".format(g_emb)
@@ -399,7 +399,7 @@ def train():
                             if FLAGS.dataset == "stacking":
                                 print("mse={}".format(mse))
                                 print("cart_error={}".format(selected_cart_error))
-                                if translation_only is False:
+                                if FLAGS.translation_only is False:
                                     print("angle_error={}".format(selected_angle_error))
                                 print("mae={}".format(selected_mae))
                             print("-" * 80)
