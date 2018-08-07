@@ -752,6 +752,66 @@ class MicroChild(Model):
         return out
 
     # override
+    def eval_once(self, sess, eval_set, feed_dict=None, verbose=False):
+        """Expects self.acc and self.global_step to be defined.
+
+        Args:
+          sess: tf.Session() or one of its wrap arounds.
+          feed_dict: can be used to give more information to sess.run().
+          eval_set: "valid" or "test"
+        """
+
+        assert self.global_step is not None
+        global_step = sess.run(self.global_step)
+        print("Eval at {}".format(global_step))
+
+        if eval_set == "valid":
+            assert self.x_valid is not None
+            assert self.valid_acc is not None
+            num_examples = self.num_valid_examples
+            num_batches = self.num_valid_batches
+            acc_op = self.valid_acc
+            cart_op = self.valid_cart_error
+            mse_op = self.valid_loss
+            mae_op = self.valid_mae
+        elif eval_set == "test":
+            assert self.test_acc is not None
+            num_examples = self.num_test_examples
+            num_batches = self.num_test_batches
+            acc_op = self.test_acc
+            cart_op = self.test_cart_error
+            mse_op = self.test_loss
+            mae_op = self.test_mae
+        else:
+            raise NotImplementedError("Unknown eval_set '{}'".format(eval_set))
+
+        total_acc = 0
+        total_cart_error = 0
+        total_mae = 0
+        total_mse = 0
+        total_exp = 0
+        for batch_id in range(num_batches):
+            acc, cart_error, mse, mae  = sess.run([acc_op, cart_op, mse_op, mae_op], feed_dict=feed_dict)
+            total_acc += acc
+            total_cart_error += cart_error
+            total_mse += mse
+            total_mae += mae
+            total_exp += self.eval_batch_size
+            if verbose:
+                sys.stdout.write(
+                    "\r{:<5d}/{:>5d}".format(total_acc, total_exp))
+        if verbose:
+            print("")
+        print("{}_accuracy: {:<6.4f}".format(
+            eval_set, float(total_acc) / total_exp))
+        print("{}_cart_error: {:<6.4f}".format(
+            eval_set, float(total_cart_error) / total_exp))
+        print("{}_mse: {:<6.4f}".format(
+            eval_set, float(total_mse) / total_exp))
+        print("{}_mae: {:<6.4f}".format(
+            eval_set, float(total_mae) / total_exp))
+
+    # override
     def _build_train(self):
         print("-" * 80)
         print("Build train graph")
@@ -861,6 +921,8 @@ class MicroChild(Model):
                 self.valid_acc = grasp_metrics.grasp_acc(
                     self.y_valid, self.valid_preds, 0.1)
                 self.valid_acc = tf.reduce_sum(self.valid_acc)
+                self.valid_loss = tf.reduce_mean(tf.losses.mean_squared_error(
+                    labels=self.y_valid, predictions=self.valid_preds))
                 self.valid_cart_error = grasp_metrics.cart_error(
                   self.y_valid, self.valid_preds)
                 self.valid_cart_error = tf.reduce_mean(self.valid_cart_error)
@@ -978,7 +1040,7 @@ class MicroChild(Model):
             self.valid_shuffle_acc = grasp_metrics.grasp_acc(
                 self.y_valid_shuffle, self.valid_shuffle_preds, 0.1)
             self.valid_shuffle_acc = tf.reduce_sum(self.valid_shuffle_acc)
-            self.valid_loss = tf.reduce_mean(tf.losses.mean_squared_error(
+            self.valid_shuffle_loss = tf.reduce_mean(tf.losses.mean_squared_error(
                     labels=self.y_valid_shuffle, predictions=self.valid_shuffle_preds))
             self.valid_shuffle_cart_error = grasp_metrics.cart_error(
                 self.y_valid_shuffle, self.valid_shuffle_preds)
