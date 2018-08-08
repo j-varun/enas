@@ -860,7 +860,7 @@ class MicroChild(Model):
         if self.dataset == "stacking":
             self.train_preds = tf.nn.sigmoid(logits)
             self.train_acc = grasp_metrics.grasp_acc(
-                self.y_train, self.train_preds, 0.1)
+                self.y_train, self.train_preds)
             print("train_acc--------------", self.train_acc)
             self.train_acc = cast_type(self.train_acc)
             self.train_acc = tf.reduce_sum(self.train_acc)
@@ -932,7 +932,7 @@ class MicroChild(Model):
                 cast_type = tf.to_float
                 self.valid_preds = logits
                 self.valid_acc = grasp_metrics.grasp_acc(
-                    self.y_valid, self.valid_preds, 0.1)
+                    self.y_valid, self.valid_preds)
                 self.valid_acc = tf.reduce_sum(self.valid_acc)
                 self.valid_loss = tf.reduce_mean(tf.losses.mean_squared_error(
                     labels=self.y_valid, predictions=self.valid_preds))
@@ -970,7 +970,7 @@ class MicroChild(Model):
             cast_type = tf.to_float
             self.test_preds = logits
             self.test_acc = grasp_metrics.grasp_acc(
-                self.y_test, self.test_preds, 0.1)
+                self.y_test, self.test_preds)
             self.test_acc = tf.reduce_sum(self.test_acc)
             self.test_cart_error = grasp_metrics.cart_error(
                 self.y_test, self.test_preds)
@@ -1059,7 +1059,7 @@ class MicroChild(Model):
             cast_type = tf.to_float
             self.valid_shuffle_preds = logits
             self.valid_shuffle_acc = grasp_metrics.grasp_acc(
-                self.y_valid_shuffle, self.valid_shuffle_preds, 0.1)
+                self.y_valid_shuffle, self.valid_shuffle_preds)
             self.valid_shuffle_acc = tf.reduce_sum(self.valid_shuffle_acc)
             self.valid_shuffle_loss = tf.reduce_mean(tf.losses.mean_squared_error(
                     labels=self.y_valid_shuffle, predictions=self.valid_shuffle_preds))
