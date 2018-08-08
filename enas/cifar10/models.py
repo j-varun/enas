@@ -43,6 +43,8 @@ class Model(object):
                  seed=None,
                  valid_set_size=32,
                  image_shape=(32, 32, 3),
+                 translation_only=False,
+                 rotation_only=False,
                  dataset="cifar",
                  ):
         """
@@ -73,6 +75,8 @@ class Model(object):
         self.dataset = dataset
         self.valid_set_size = valid_set_size
         self.image_shape = image_shape
+        self.rotation_only = rotation_only
+        self.translation_only = translation_only
 
         self.global_step = None
         self.valid_acc = None
@@ -105,8 +109,21 @@ class Model(object):
                 self.num_train_examples = len(train_data) * estimated_images_per_example
                 self.num_train_batches = (self.num_train_examples + self.batch_size - 1) // self.batch_size
                 # output_shape = (32, 32, 3)
-                data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
-                label_features = ['grasp_goal_xyz_aaxyz_nsc_8']
+                if self.translation_only is True:
+                    data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
+                    label_features = ['grasp_goal_xyz_3']
+                    self.num_classes = 3
+                    self.data_features_len = 15
+                elif self.rotation_only is True:
+                    data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
+                    label_features = ['grasp_goal_aaxyz_nsc_5']
+                    self.num_classes = 5
+                    self.data_features_len = 15
+                else:
+                    data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
+                    label_features = ['grasp_goal_xyz_aaxyz_nsc_8']
+                    self.num_classes = 8
+                    self.data_features_len = 15
                 training_generator = CostarBlockStackingSequence(
                     train_data, batch_size=batch_size, verbose=0,
                     label_features_to_extract=label_features,
@@ -121,13 +138,13 @@ class Model(object):
                 def train_generator(): return iter(train_enqueuer.get())
 
                 train_dataset = Dataset.from_generator(train_generator, (tf.float32, tf.float32), (tf.TensorShape(
-                    [None, self.image_shape[0], self.image_shape[1], 15]), tf.TensorShape([None, None])))
+                    [None, self.image_shape[0], self.image_shape[1], self.data_features_len]), tf.TensorShape([None, None])))
                 trainer = train_dataset.make_one_shot_iterator()
                 x_train, y_train = trainer.get_next()
                 print("x shape--------------", x_train.shape)
                 print("batch--------------------------",
                       self.num_train_examples, self.num_train_batches)
-                self.num_classes = 8
+                print("y shape--------------", y_train.shape)
                 self.x_train = x_train
                 self.y_train = y_train
 
@@ -194,7 +211,7 @@ class Model(object):
 
                 def validation_generator(): return iter(train_enqueuer.get())
                 validation_dataset = Dataset.from_generator(validation_generator, (tf.float32, tf.float32), (tf.TensorShape(
-                    [None, self.image_shape[0], self.image_shape[1], 15]), tf.TensorShape([None, None])))
+                    [None, self.image_shape[0], self.image_shape[1], self.data_features_len]), tf.TensorShape([None, None])))
                 self.num_valid_examples = len(
                     validation_data) * self.eval_batch_size * estimated_images_per_example
                 self.num_valid_batches = (
@@ -239,7 +256,7 @@ class Model(object):
 
                 def test_generator(): return iter(train_enqueuer.get())
                 test_dataset = Dataset.from_generator(test_generator, (tf.float32, tf.float32), (tf.TensorShape(
-                    [None, self.image_shape[0], self.image_shape[1], 15]), tf.TensorShape([None, None])))
+                    [None, self.image_shape[0], self.image_shape[1], self.data_features_len]), tf.TensorShape([None, None])))
                 self.num_test_examples = len(
                     test_data) * self.eval_batch_size * estimated_images_per_example
                 self.num_test_batches = (

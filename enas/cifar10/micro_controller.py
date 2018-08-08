@@ -43,6 +43,7 @@ class MicroController(Controller):
                  num_aggregate=None,
                  num_replicas=None,
                  name="controller",
+                 alternate_reward=False,
                  dataset="cifar",
                  **kwargs):
 
@@ -77,6 +78,7 @@ class MicroController(Controller):
         self.num_replicas = num_replicas
         self.name = name
         self.dataset = dataset
+        self.alternate_reward = alternate_reward
 
         self._create_params()
         arc_seq_1, entropy_1, log_prob_1, c, h = self._build_sampler(
@@ -248,12 +250,21 @@ class MicroController(Controller):
         self.valid_acc = (tf.to_float(child_model.valid_shuffle_acc) /
                           tf.to_float(child_model.batch_size))
         if self.dataset == "stacking":
-            self.reward = -child_model.valid_loss
+            if self.alternate_reward is True:
+                self.reward = 5 - child_model.valid_loss
+            else:
+                self.reward = -child_model.valid_loss
             self.mse = child_model.valid_loss
+            self.mae = child_model.valid_shuffle_mae
+            self.angle_error = child_model.valid_shuffle_angle_error
+            self.cart_error = child_model.valid_shuffle_cart_error
 
         else:
             self.reward = self.valid_acc
             self.mse = tf.zeros([1])
+            self.mae = tf.zeros([1])
+            self.angle_error = tf.zeros([1])
+            self.cart_error = tf.zeros([1])
 
         if self.entropy_weight is not None:
             self.reward += self.entropy_weight * self.sample_entropy

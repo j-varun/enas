@@ -49,6 +49,9 @@ DEFINE_integer("valid_set_size", 128, "")
 DEFINE_integer("height_img", 32, "")
 DEFINE_integer("width_img", 32, "")
 DEFINE_boolean("regression", False, "Task is regression or classification")
+DEFINE_boolean("translation_only", False, "Translation only case")
+DEFINE_boolean("rotation_only", False, "Rotation only case")
+DEFINE_boolean("alternate_reward", False, "Positive reward; for stacking dataset only")
 
 DEFINE_integer("num_epochs", 300, "")
 DEFINE_integer("child_lr_dec_every", 100, "")
@@ -156,9 +159,10 @@ def get_ops(images, labels):
         num_replicas=FLAGS.child_num_replicas,
         valid_set_size=FLAGS.valid_set_size,
         image_shape=(FLAGS.height_img, FLAGS.width_img, 3),
+        translation_only=FLAGS.translation_only,
+        rotation_only=FLAGS.rotation_only,
         dataset=FLAGS.dataset,
     )
-
     if FLAGS.child_fixed_arc is None:
         controller_model = ControllerClass(
             search_for=FLAGS.search_for,
@@ -186,6 +190,7 @@ def get_ops(images, labels):
             sync_replicas=FLAGS.controller_sync_replicas,
             num_aggregate=FLAGS.controller_num_aggregate,
             num_replicas=FLAGS.controller_num_replicas,
+            alternate_reward=FLAGS.alternate_reward,
             dataset=FLAGS.dataset)
 
         child_model.connect_controller(controller_model)
@@ -205,6 +210,9 @@ def get_ops(images, labels):
             "skip_rate": controller_model.skip_rate,
             "reward": controller_model.reward,
             "mse": controller_model.mse,
+            "cart_error": controller_model.cart_error,
+            "angle_error": controller_model.angle_error,
+            "mae": controller_model.mae,
             # "g_emb": controller_model.g_emb,
         }
     else:
@@ -290,7 +298,7 @@ def train():
                 loss, lr, gn, tr_acc, tr_op, tr_angle_error, tr_cart_error, tr_mae, tr_preds, tr_label = sess.run(
                     run_ops)
                 global_step = sess.run(child_ops["global_step"])
-                print("global step", global_step, end="\r")
+                print("---------------global step", global_step, end="\r")
 
                 if FLAGS.child_sync_replicas:
                     actual_step = global_step * FLAGS.num_aggregate
@@ -310,8 +318,10 @@ def train():
                     log_string += " mins={:<10.2f}".format(
                         float(curr_time - start_time) / 60)
                     if FLAGS.dataset == "stacking":
-                        log_string += "\ntr_ang_error={}".format(tr_angle_error)
-                        log_string += " tr_cart_error={}".format(tr_cart_error)
+                        if FLAGS.translation_only is False:
+                            log_string += "\ntr_ang_error={}".format(tr_angle_error)
+                        if FLAGS.rotation_only is False:
+                            log_string += " tr_cart_error={}".format(tr_cart_error)
                         log_string += " tr_mae={}".format(tr_mae)
                         log_string += "\ntr_preds={}".format(tr_preds)
                         log_string += "\ntr_label={}".format(tr_label)
@@ -331,10 +341,13 @@ def train():
                                 controller_ops["valid_acc"],
                                 controller_ops["baseline"],
                                 controller_ops["reward"],
+                                controller_ops["cart_error"],
+                                controller_ops["angle_error"],
+                                controller_ops["mae"],
                                 controller_ops["skip_rate"],
                                 controller_ops["train_op"],
                             ]
-                            loss, entropy, lr, gn, val_acc, bl, reward, skip, _ = sess.run(
+                            loss, entropy, lr, gn, val_acc, bl, reward, cart_error, angle_error, mae, skip, _ = sess.run(
                                 run_ops)
                             controller_step = sess.run(
                                 controller_ops["train_step"])
@@ -353,16 +366,25 @@ def train():
                                 log_string += " mins={:<.2f}".format(
                                     float(curr_time - start_time) / 60)
                                 log_string += " rw ={}".format(reward)
+                                if FLAGS.dataset == "stacking":
+                                    if FLAGS.rotation_only is False:
+                                        log_string += "\ncart_error={}".format(cart_error)
+                                    if FLAGS.translation_only is False:
+                                        log_string += "\nangle_error={}".format(angle_error)
+                                    log_string += "\nmae={}".format(mae)
                                 # log_string += "\n g_emb = {}".format(g_emb)
                                 print(log_string)
 
                         print("Here are 10 architectures")
                         for _ in range(10):
-                            arc, acc, c_loss, mse = sess.run([
+                            arc, acc, c_loss, mse, selected_cart_error, selected_angle_error, selected_mae = sess.run([
                                 controller_ops["sample_arc"],
                                 controller_ops["valid_acc"],
                                 controller_ops["loss"],
                                 controller_ops["mse"],
+                                controller_ops["cart_error"],
+                                controller_ops["angle_error"],
+                                controller_ops["mae"],
                             ])
                             if FLAGS.search_for == "micro":
                                 normal_arc, reduce_arc = arc
@@ -381,6 +403,11 @@ def train():
                             print("loss={}".format(c_loss))
                             if FLAGS.dataset == "stacking":
                                 print("mse={}".format(mse))
+                                if FLAGS.rotation_only is False:
+                                    print("cart_error={}".format(selected_cart_error))
+                                if FLAGS.translation_only is False:
+                                    print("angle_error={}".format(selected_angle_error))
+                                print("mae={}".format(selected_mae))
                             print("-" * 80)
 
                     print("Epoch {}: Eval".format(epoch))

@@ -59,6 +59,8 @@ class MicroChild(Model):
                  name="child",
                  valid_set_size=32,
                  image_shape=(32, 32, 3),
+                 translation_only=False,
+                 rotation_only=False,
                  dataset="cifar",
                  **kwargs
                  ):
@@ -84,6 +86,8 @@ class MicroChild(Model):
             name=name,
             valid_set_size=valid_set_size,
             image_shape=image_shape,
+            translation_only=translation_only,
+            rotation_only=rotation_only,
             dataset=dataset)
 
         if self.data_format == "NHWC":
@@ -107,6 +111,7 @@ class MicroChild(Model):
         self.num_layers = num_layers
         self.num_cells = num_cells
         self.fixed_arc = fixed_arc
+        self.translation_only = translation_only
 
         self.global_step = tf.Variable(
             0, dtype=tf.int32, trainable=False, name="global_step")
@@ -749,6 +754,74 @@ class MicroChild(Model):
         return out
 
     # override
+    def eval_once(self, sess, eval_set, feed_dict=None, verbose=False):
+        """Expects self.acc and self.global_step to be defined.
+
+        Args:
+          sess: tf.Session() or one of its wrap arounds.
+          feed_dict: can be used to give more information to sess.run().
+          eval_set: "valid" or "test"
+        """
+
+        assert self.global_step is not None
+        global_step = sess.run(self.global_step)
+        print("Eval at {}".format(global_step))
+
+        if eval_set == "valid":
+            assert self.x_valid is not None
+            assert self.valid_acc is not None
+            num_examples = self.num_valid_examples
+            num_batches = self.num_valid_batches
+            acc_op = self.valid_acc
+            cart_op = self.valid_cart_error
+            ang_er_op = self.valid_cart_error
+            mse_op = self.valid_loss
+            mae_op = self.valid_mae
+        elif eval_set == "test":
+            assert self.test_acc is not None
+            num_examples = self.num_test_examples
+            num_batches = self.num_test_batches
+            acc_op = self.test_acc
+            ang_er_op = self.test_angle_error
+            cart_op = self.test_cart_error
+            mse_op = self.test_loss
+            mae_op = self.test_mae
+        else:
+            raise NotImplementedError("Unknown eval_set '{}'".format(eval_set))
+
+        total_acc = 0
+        total_cart_error = 0
+        total_mae = 0
+        total_mse = 0
+        total_exp = 0
+        total_angle_error = 0
+        for batch_id in range(num_batches):
+            acc, cart_error, angle_error, mse, mae = sess.run([acc_op, cart_op, ang_er_op, mse_op, mae_op], feed_dict=feed_dict)
+            total_acc += acc
+            total_cart_error += cart_error
+            total_angle_error += angle_error
+            total_mse += mse
+            total_mae += mae
+            total_exp += self.eval_batch_size
+            if verbose:
+                sys.stdout.write(
+                    "\r{:<5d}/{:>5d}".format(total_acc, total_exp))
+        if verbose:
+            print("")
+        print("{}_accuracy: {:<6.4f}".format(
+            eval_set, float(total_acc) / total_exp))
+        if self.rotation_only is False:
+            print("{}_cart_error: {:<6.4f}".format(
+                eval_set, float(total_cart_error) / total_exp))
+        if self.translation_only is False:
+            print("{}_angle_error: {:<6.4f}".format(
+                eval_set, float(total_angle_error) / total_exp))
+        print("{}_mse: {:<6.4f}".format(
+            eval_set, float(total_mse) / total_exp))
+        print("{}_mae: {:<6.4f}".format(
+            eval_set, float(total_mae) / total_exp))
+
+    # override
     def _build_train(self):
         print("-" * 80)
         print("Build train graph")
@@ -793,10 +866,16 @@ class MicroChild(Model):
             self.train_acc = tf.reduce_sum(self.train_acc)
             self.train_cart_error = grasp_metrics.cart_error(
                 self.y_train, self.train_preds)
-            self.train_cart_error = tf.reduce_mean(self.train_cart_error)
-            self.train_angle_error = grasp_metrics.angle_error(
-                self.y_train, self.train_preds)
-            self.train_angle_error = tf.reduce_mean(self.train_angle_error)
+            if self.rotation_only is True:
+                self.train_cart_error = tf.zeros([1])
+            else:
+                self.train_cart_error = tf.reduce_mean(self.train_cart_error)
+            if self.translation_only is True:
+                self.train_angle_error = tf.zeros([1])
+            else:
+                self.train_angle_error = grasp_metrics.angle_error(
+                    self.y_train, self.train_preds)
+                self.train_angle_error = tf.reduce_mean(self.train_angle_error)
             self.train_mae = tf.metrics.mean_absolute_error(
                 self.y_train, self.train_preds)
             self.train_mae = tf.reduce_mean(self.train_mae)
@@ -855,6 +934,23 @@ class MicroChild(Model):
                 self.valid_acc = grasp_metrics.grasp_acc(
                     self.y_valid, self.valid_preds, 0.1)
                 self.valid_acc = tf.reduce_sum(self.valid_acc)
+                self.valid_loss = tf.reduce_mean(tf.losses.mean_squared_error(
+                    labels=self.y_valid, predictions=self.valid_preds))
+                self.valid_cart_error = grasp_metrics.cart_error(
+                  self.y_valid, self.valid_preds)
+                if self.rotation_only is True:
+                    self.valid_cart_error = tf.zeros([1])
+                else:
+                    self.valid_cart_error = tf.reduce_mean(self.valid_cart_error)
+                if self.translation_only is True:
+                    self.valid_angle_error = tf.zeros([1])
+                else:
+                    self.valid_angle_error = grasp_metrics.angle_error(
+                        self.y_valid, self.valid_preds)
+                    self.valid_angle_error = tf.reduce_mean(self.valid_angle_error)
+                self.valid_mae = tf.metrics.mean_absolute_error(
+                    self.y_valid, self.valid_preds)
+                self.valid_mae = tf.reduce_mean(self.valid_mae)
 
             else:
                 cast_type = tf.to_int32
@@ -876,6 +972,24 @@ class MicroChild(Model):
             self.test_acc = grasp_metrics.grasp_acc(
                 self.y_test, self.test_preds, 0.1)
             self.test_acc = tf.reduce_sum(self.test_acc)
+            self.test_cart_error = grasp_metrics.cart_error(
+                self.y_test, self.test_preds)
+            if self.rotation_only is True:
+                self.test_cart_error = tf.zeros([1])
+            else:
+                self.test_cart_error = tf.reduce_mean(self.test_cart_error)
+            if self.translation_only is True:
+                self.test_angle_error = tf.zeros([1])
+            else:
+                self.test_angle_error = grasp_metrics.angle_error(
+                    self.y_test, self.test_preds)
+                self.test_angle_error = tf.reduce_mean(self.test_angle_error)
+            self.test_mae = tf.metrics.mean_absolute_error(
+                self.y_test, self.test_preds)
+            self.test_mae = tf.reduce_mean(self.test_mae)
+            self.test_loss = tf.reduce_mean(tf.losses.mean_squared_error(
+                    labels=self.y_test, predictions=self.test_preds))
+
         else:
             cast_type = tf.to_int32
             self.test_preds = tf.argmax(logits, axis=1)
@@ -891,7 +1005,7 @@ class MicroChild(Model):
         if self.dataset == "stacking":
             with tf.device("/cpu:0"):
                 if not shuffle:
-                    x_valid_shuffle, y_valid_shuffle = self.x_valid, self.y_valid
+                    self.x_valid_shuffle, self.y_valid_shuffle = self.x_valid, self.y_valid
                 else:
                     data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
                     label_features = ['grasp_goal_xyz_aaxyz_nsc_8']
@@ -904,8 +1018,9 @@ class MicroChild(Model):
                                   use_multiprocessing=False,
                                   shuffle=True)
                     validation_enqueuer.start(workers=10, max_queue_size=100)
+
                     def validation_generator(): return iter(train_enqueuer.get())
-                    validation_dataset = Dataset.from_generator(validation_generator, (tf.float32, tf.float32), (tf.TensorShape([None, self.image_shape[0], self.image_shape[1], 15]), tf.TensorShape([None, None])))
+                    validation_dataset = Dataset.from_generator(validation_generator, (tf.float32, tf.float32), (tf.TensorShape([None, self.image_shape[0], self.image_shape[1], self.data_features_len]), tf.TensorShape([None, None])))
                     x_valid_shuffle, y_valid_shuffle = validation_dataset.make_one_shot_iterator().get_next()
 
         else:
@@ -914,7 +1029,7 @@ class MicroChild(Model):
                 if not shuffle and self.data_format == "NCHW":
                     self.images["valid_original"] = np.transpose(
                         self.images["valid_original"], [0, 3, 1, 2])
-                x_valid_shuffle, y_valid_shuffle = tf.train.shuffle_batch(
+                self.x_valid_shuffle, self.y_valid_shuffle = tf.train.shuffle_batch(
                     [self.images["valid_original"], self.labels["valid_original"]],
                     batch_size=self.batch_size,
                     capacity=25000,
@@ -938,21 +1053,37 @@ class MicroChild(Model):
                         _pre_process, x_valid_shuffle, back_prop=False)
 
         logits = self._model(
-            x_valid_shuffle, is_training=True, reuse=True)
+            self.x_valid_shuffle, is_training=True, reuse=True)
         if self.dataset == "stacking":
             logits = tf.nn.sigmoid(logits)
             cast_type = tf.to_float
-            valid_shuffle_preds = logits
+            self.valid_shuffle_preds = logits
             self.valid_shuffle_acc = grasp_metrics.grasp_acc(
-                y_valid_shuffle, valid_shuffle_preds, 0.1)
+                self.y_valid_shuffle, self.valid_shuffle_preds, 0.1)
             self.valid_shuffle_acc = tf.reduce_sum(self.valid_shuffle_acc)
-            self.valid_loss = tf.reduce_mean(tf.losses.mean_squared_error(
-                    labels=self.y_valid, predictions=self.valid_preds))
+            self.valid_shuffle_loss = tf.reduce_mean(tf.losses.mean_squared_error(
+                    labels=self.y_valid_shuffle, predictions=self.valid_shuffle_preds))
+            self.valid_shuffle_cart_error = grasp_metrics.cart_error(
+                self.y_valid_shuffle, self.valid_shuffle_preds)
+            if self.rotation_only is True:
+                self.valid_shuffle_cart_error = tf.zeros([1])
+            else:
+                self.valid_shuffle_cart_error = tf.reduce_mean(self.valid_shuffle_cart_error)
+            if self.translation_only is True:
+                self.valid_shuffle_angle_error = tf.zeros([1])
+            else:
+                self.valid_shuffle_angle_error = grasp_metrics.angle_error(
+                    self.y_valid_shuffle, self.valid_shuffle_preds)
+                self.valid_shuffle_angle_error = tf.reduce_mean(self.valid_shuffle_angle_error)
+            self.valid_shuffle_mae = tf.metrics.mean_absolute_error(
+                self.y_valid_shuffle, self.valid_shuffle_preds)
+            self.valid_shuffle_mae = tf.reduce_mean(self.valid_shuffle_mae)
+
         else:
             cast_type = tf.to_int32
-            valid_shuffle_preds = tf.argmax(logits, axis=1)
-            valid_shuffle_preds = cast_type(valid_shuffle_preds)
-            self.valid_shuffle_acc = tf.equal(valid_shuffle_preds, y_valid_shuffle)
+            self.valid_shuffle_preds = tf.argmax(logits, axis=1)
+            self.valid_shuffle_preds = cast_type(self.valid_shuffle_preds)
+            self.valid_shuffle_acc = tf.equal(self.valid_shuffle_preds, self.y_valid_shuffle)
             self.valid_shuffle_acc = cast_type(self.valid_shuffle_acc)
             self.valid_shuffle_acc = tf.reduce_sum(self.valid_shuffle_acc)
 
