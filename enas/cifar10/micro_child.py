@@ -773,10 +773,8 @@ class MicroChild(Model):
             num_examples = self.num_valid_examples
             num_batches = self.num_valid_batches
             acc_op = self.valid_acc
-            if self.rotation_only is False:
-                cart_op = self.valid_cart_error
-            if self.translation_only is False:
-                ang_er_op = self.valid_cart_error
+            cart_op = self.valid_cart_error
+            ang_er_op = self.valid_cart_error
             mse_op = self.valid_loss
             mae_op = self.valid_mae
         elif eval_set == "test":
@@ -784,10 +782,8 @@ class MicroChild(Model):
             num_examples = self.num_test_examples
             num_batches = self.num_test_batches
             acc_op = self.test_acc
-            if self.translation_only is False:
-                ang_er_op = self.test_angle_error
-            if self.rotation_only is False:
-                cart_op = self.test_cart_error
+            ang_er_op = self.test_angle_error
+            cart_op = self.test_cart_error
             mse_op = self.test_loss
             mae_op = self.test_mae
         else:
