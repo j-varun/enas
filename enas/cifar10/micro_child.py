@@ -809,17 +809,17 @@ class MicroChild(Model):
         if verbose:
             print("")
         print("{}_accuracy: {:<6.4f}".format(
-            eval_set, float(total_acc) / total_exp))
+            eval_set, float(total_acc) / num_batches))
         if self.rotation_only is False:
             print("{}_cart_error: {:<6.4f}".format(
-                eval_set, float(total_cart_error) / total_exp))
+                eval_set, float(total_cart_error) / num_batches))
         if self.translation_only is False:
             print("{}_angle_error: {:<6.4f}".format(
-                eval_set, float(total_angle_error) / total_exp))
+                eval_set, float(total_angle_error) / num_batches))
         print("{}_mse: {:<6.4f}".format(
-            eval_set, float(total_mse) / total_exp))
+            eval_set, float(total_mse) / num_batches))
         print("{}_mae: {:<6.4f}".format(
-            eval_set, float(total_mae) / total_exp))
+            eval_set, float(total_mae) / num_batches))
 
     # override
     def _build_train(self):
@@ -887,7 +887,7 @@ class MicroChild(Model):
             # tf.Print(self.y_train,[tf.shape(self.y_train),"ytra==-------------"])
             self.train_acc = tf.equal(self.train_preds, self.y_train)
             self.train_acc = cast_type(self.train_acc)
-            self.train_acc = tf.reduce_sum(self.train_acc)
+            self.train_acc = tf.reduce_mean(self.train_acc)
             self.train_cart_error = tf.zeros([1])
             self.train_angle_error = tf.zeros([1])
             self.train_mae = tf.zeros([1])

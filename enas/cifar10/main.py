@@ -51,7 +51,7 @@ DEFINE_integer("width_img", 32, "")
 DEFINE_boolean("regression", False, "Task is regression or classification")
 DEFINE_boolean("translation_only", False, "Translation only case")
 DEFINE_boolean("rotation_only", False, "Rotation only case")
-DEFINE_boolean("alternate_reward", False, "Positive reward; for stacking dataset only")
+DEFINE_integer("max_loss", 0, "To set positive reward; for stacking dataset only")
 
 DEFINE_integer("num_epochs", 300, "")
 DEFINE_integer("child_lr_dec_every", 100, "")
@@ -190,7 +190,7 @@ def get_ops(images, labels):
             sync_replicas=FLAGS.controller_sync_replicas,
             num_aggregate=FLAGS.controller_num_aggregate,
             num_replicas=FLAGS.controller_num_replicas,
-            alternate_reward=FLAGS.alternate_reward,
+            max_loss=FLAGS.max_loss,
             dataset=FLAGS.dataset)
 
         child_model.connect_controller(controller_model)
@@ -310,10 +310,10 @@ def train():
                     log_string = "\n"
                     log_string += "epoch={:<6d}".format(epoch)
                     log_string += "ch_step={:<6d}".format(global_step)
-                    log_string += " loss={:<8.6f}".format(loss)
+                    log_string += " child_loss={:<8.6f}".format(loss)
                     log_string += " lr={:<8.4f}".format(lr)
                     log_string += " |g|={:<8.4f}".format(gn)
-                    log_string += " tr_acc={:<3f}/{:>3d}".format(
+                    log_string += " child_tr_acc={:<3f}/{:>3d}".format(
                         tr_acc, FLAGS.batch_size)
                     log_string += " mins={:<10.2f}".format(
                         float(curr_time - start_time) / 60)
@@ -357,7 +357,7 @@ def train():
                                 log_string = "\n"
                                 log_string += "ctrl_step={:<6d}".format(
                                     controller_step)
-                                log_string += " loss={:<7.3f}".format(loss)
+                                log_string += " controller_loss={:<7.3f}".format(loss)
                                 log_string += " ent={:<5.2f}".format(entropy)
                                 log_string += " lr={:<6.4f}".format(lr)
                                 log_string += " |g|={:<8.4f}".format(gn)
@@ -366,6 +366,7 @@ def train():
                                 log_string += " mins={:<.2f}".format(
                                     float(curr_time - start_time) / 60)
                                 log_string += " rw ={}".format(reward)
+                                log_string += " mse ={}".format(FLAGS.max_loss-reward)
                                 if FLAGS.dataset == "stacking":
                                     if FLAGS.rotation_only is False:
                                         log_string += "\ncart_error={}".format(cart_error)
@@ -400,7 +401,7 @@ def train():
                                     print(np.reshape(arc[start: end], [-1]))
                                     start = end
                             print("val_acc={:<6.4f}".format(acc))
-                            print("loss={}".format(c_loss))
+                            print("controller_loss={}".format(c_loss))
                             if FLAGS.dataset == "stacking":
                                 print("mse={}".format(mse))
                                 if FLAGS.rotation_only is False:
