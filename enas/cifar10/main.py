@@ -50,6 +50,7 @@ DEFINE_integer("height_img", 32, "")
 DEFINE_integer("width_img", 32, "")
 DEFINE_boolean("regression", False, "Task is regression or classification")
 DEFINE_boolean("translation_only", False, "Translation only case")
+DEFINE_boolean("alternate_reward", False, "Positive reward; for stacking dataset only")
 
 DEFINE_integer("num_epochs", 300, "")
 DEFINE_integer("child_lr_dec_every", 100, "")
@@ -160,7 +161,6 @@ def get_ops(images, labels):
         translation_only=FLAGS.translation_only,
         dataset=FLAGS.dataset,
     )
-
     if FLAGS.child_fixed_arc is None:
         controller_model = ControllerClass(
             search_for=FLAGS.search_for,
@@ -188,6 +188,7 @@ def get_ops(images, labels):
             sync_replicas=FLAGS.controller_sync_replicas,
             num_aggregate=FLAGS.controller_num_aggregate,
             num_replicas=FLAGS.controller_num_replicas,
+            alternate_reward=FLAGS.alternate_reward,
             dataset=FLAGS.dataset)
 
         child_model.connect_controller(controller_model)
