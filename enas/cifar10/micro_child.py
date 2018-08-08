@@ -791,7 +791,7 @@ class MicroChild(Model):
         total_mse = 0
         total_exp = 0
         for batch_id in range(num_batches):
-            acc, cart_error, mse, mae  = sess.run([acc_op, cart_op, mse_op, mae_op], feed_dict=feed_dict)
+            acc, cart_error, mse, mae = sess.run([acc_op, cart_op, mse_op, mae_op], feed_dict=feed_dict)
             total_acc += acc
             total_cart_error += cart_error
             total_mse += mse
@@ -1061,7 +1061,7 @@ class MicroChild(Model):
             cast_type = tf.to_int32
             self.valid_shuffle_preds = tf.argmax(logits, axis=1)
             self.valid_shuffle_preds = cast_type(self.valid_shuffle_preds)
-            self.valid_shuffle_acc = tf.equal(valid_shuffle_preds, y_valid_shuffle)
+            self.valid_shuffle_acc = tf.equal(self.valid_shuffle_preds, self.y_valid_shuffle)
             self.valid_shuffle_acc = cast_type(self.valid_shuffle_acc)
             self.valid_shuffle_acc = tf.reduce_sum(self.valid_shuffle_acc)
 
