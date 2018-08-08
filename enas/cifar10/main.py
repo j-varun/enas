@@ -51,7 +51,7 @@ DEFINE_integer("width_img", 32, "")
 DEFINE_boolean("regression", False, "Task is regression or classification")
 DEFINE_boolean("translation_only", False, "Translation only case")
 DEFINE_boolean("rotation_only", False, "Rotation only case")
-DEFINE_boolean("alternate_reward", False, "Positive reward; for stacking dataset only")
+DEFINE_integer("max_loss", 0, "To set positive reward; for stacking dataset only")
 
 DEFINE_integer("num_epochs", 300, "")
 DEFINE_integer("child_lr_dec_every", 100, "")
@@ -190,7 +190,7 @@ def get_ops(images, labels):
             sync_replicas=FLAGS.controller_sync_replicas,
             num_aggregate=FLAGS.controller_num_aggregate,
             num_replicas=FLAGS.controller_num_replicas,
-            alternate_reward=FLAGS.alternate_reward,
+            max_loss=FLAGS.max_loss,
             dataset=FLAGS.dataset)
 
         child_model.connect_controller(controller_model)
@@ -366,6 +366,7 @@ def train():
                                 log_string += " mins={:<.2f}".format(
                                     float(curr_time - start_time) / 60)
                                 log_string += " rw ={}".format(reward)
+                                log_string += " mse ={}".format(FLAGS.max_loss-reward)
                                 if FLAGS.dataset == "stacking":
                                     if FLAGS.rotation_only is False:
                                         log_string += "\ncart_error={}".format(cart_error)
