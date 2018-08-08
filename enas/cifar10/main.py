@@ -310,10 +310,10 @@ def train():
                     log_string = "\n"
                     log_string += "epoch={:<6d}".format(epoch)
                     log_string += "ch_step={:<6d}".format(global_step)
-                    log_string += " loss={:<8.6f}".format(loss)
+                    log_string += " child_loss={:<8.6f}".format(loss)
                     log_string += " lr={:<8.4f}".format(lr)
                     log_string += " |g|={:<8.4f}".format(gn)
-                    log_string += " tr_acc={:<3f}/{:>3d}".format(
+                    log_string += " child_tr_acc={:<3f}/{:>3d}".format(
                         tr_acc, FLAGS.batch_size)
                     log_string += " mins={:<10.2f}".format(
                         float(curr_time - start_time) / 60)
@@ -357,7 +357,7 @@ def train():
                                 log_string = "\n"
                                 log_string += "ctrl_step={:<6d}".format(
                                     controller_step)
-                                log_string += " loss={:<7.3f}".format(loss)
+                                log_string += " controller_loss={:<7.3f}".format(loss)
                                 log_string += " ent={:<5.2f}".format(entropy)
                                 log_string += " lr={:<6.4f}".format(lr)
                                 log_string += " |g|={:<8.4f}".format(gn)
@@ -401,7 +401,7 @@ def train():
                                     print(np.reshape(arc[start: end], [-1]))
                                     start = end
                             print("val_acc={:<6.4f}".format(acc))
-                            print("loss={}".format(c_loss))
+                            print("controller_loss={}".format(c_loss))
                             if FLAGS.dataset == "stacking":
                                 print("mse={}".format(mse))
                                 if FLAGS.rotation_only is False:
