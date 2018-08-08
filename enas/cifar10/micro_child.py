@@ -774,7 +774,7 @@ class MicroChild(Model):
             num_batches = self.num_valid_batches
             acc_op = self.valid_acc
             cart_op = self.valid_cart_error
-            ang_er_op = self.valid_cart_error
+            ang_er_op = self.valid_angle_error
             mse_op = self.valid_loss
             mae_op = self.valid_mae
         elif eval_set == "test":
