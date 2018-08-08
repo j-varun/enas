@@ -50,6 +50,7 @@ DEFINE_integer("height_img", 32, "")
 DEFINE_integer("width_img", 32, "")
 DEFINE_boolean("regression", False, "Task is regression or classification")
 DEFINE_boolean("translation_only", False, "Translation only case")
+DEFINE_boolean("rotation_only", False, "Rotation only case")
 DEFINE_boolean("alternate_reward", False, "Positive reward; for stacking dataset only")
 
 DEFINE_integer("num_epochs", 300, "")
@@ -159,6 +160,7 @@ def get_ops(images, labels):
         valid_set_size=FLAGS.valid_set_size,
         image_shape=(FLAGS.height_img, FLAGS.width_img, 3),
         translation_only=FLAGS.translation_only,
+        rotation_only=FLAGS.rotation_only,
         dataset=FLAGS.dataset,
     )
     if FLAGS.child_fixed_arc is None:
@@ -318,7 +320,8 @@ def train():
                     if FLAGS.dataset == "stacking":
                         if FLAGS.translation_only is False:
                             log_string += "\ntr_ang_error={}".format(tr_angle_error)
-                        log_string += " tr_cart_error={}".format(tr_cart_error)
+                        if FLAGS.rotation_only is False:
+                            log_string += " tr_cart_error={}".format(tr_cart_error)
                         log_string += " tr_mae={}".format(tr_mae)
                         log_string += "\ntr_preds={}".format(tr_preds)
                         log_string += "\ntr_label={}".format(tr_label)
@@ -364,7 +367,8 @@ def train():
                                     float(curr_time - start_time) / 60)
                                 log_string += " rw ={}".format(reward)
                                 if FLAGS.dataset == "stacking":
-                                    log_string += "\ncart_error={}".format(cart_error)
+                                    if FLAGS.rotation_only is False:
+                                        log_string += "\ncart_error={}".format(cart_error)
                                     if FLAGS.translation_only is False:
                                         log_string += "\nangle_error={}".format(angle_error)
                                     log_string += "\nmae={}".format(mae)
@@ -399,7 +403,8 @@ def train():
                             print("loss={}".format(c_loss))
                             if FLAGS.dataset == "stacking":
                                 print("mse={}".format(mse))
-                                print("cart_error={}".format(selected_cart_error))
+                                if FLAGS.rotation_only is False:
+                                    print("cart_error={}".format(selected_cart_error))
                                 if FLAGS.translation_only is False:
                                     print("angle_error={}".format(selected_angle_error))
                                 print("mae={}".format(selected_mae))

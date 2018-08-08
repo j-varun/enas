@@ -44,6 +44,7 @@ class Model(object):
                  valid_set_size=32,
                  image_shape=(32, 32, 3),
                  translation_only=False,
+                 rotation_only=False,
                  dataset="cifar",
                  ):
         """
@@ -74,6 +75,7 @@ class Model(object):
         self.dataset = dataset
         self.valid_set_size = valid_set_size
         self.image_shape = image_shape
+        self.rotation_only = rotation_only
         self.translation_only = translation_only
 
         self.global_step = None
@@ -111,6 +113,11 @@ class Model(object):
                     data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
                     label_features = ['grasp_goal_xyz_3']
                     self.num_classes = 3
+                    self.data_features_len = 15
+                elif self.rotation_only is True:
+                    data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
+                    label_features = ['grasp_goal_aaxyz_nsc_5']
+                    self.num_classes = 5
                     self.data_features_len = 15
                 else:
                     data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']

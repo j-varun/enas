@@ -60,6 +60,7 @@ class MicroChild(Model):
                  valid_set_size=32,
                  image_shape=(32, 32, 3),
                  translation_only=False,
+                 rotation_only=False,
                  dataset="cifar",
                  **kwargs
                  ):
@@ -86,6 +87,7 @@ class MicroChild(Model):
             valid_set_size=valid_set_size,
             image_shape=image_shape,
             translation_only=translation_only,
+            rotation_only=rotation_only,
             dataset=dataset)
 
         if self.data_format == "NHWC":
@@ -771,7 +773,10 @@ class MicroChild(Model):
             num_examples = self.num_valid_examples
             num_batches = self.num_valid_batches
             acc_op = self.valid_acc
-            cart_op = self.valid_cart_error
+            if self.rotation_only is False:
+                cart_op = self.valid_cart_error
+            if self.translation_only is False:
+                ang_er_op = self.valid_cart_error
             mse_op = self.valid_loss
             mae_op = self.valid_mae
         elif eval_set == "test":
@@ -779,7 +784,10 @@ class MicroChild(Model):
             num_examples = self.num_test_examples
             num_batches = self.num_test_batches
             acc_op = self.test_acc
-            cart_op = self.test_cart_error
+            if self.translation_only is False:
+                ang_er_op = self.test_angle_error
+            if self.rotation_only is False:
+                cart_op = self.test_cart_error
             mse_op = self.test_loss
             mae_op = self.test_mae
         else:
@@ -790,10 +798,12 @@ class MicroChild(Model):
         total_mae = 0
         total_mse = 0
         total_exp = 0
+        total_angle_error = 0
         for batch_id in range(num_batches):
-            acc, cart_error, mse, mae = sess.run([acc_op, cart_op, mse_op, mae_op], feed_dict=feed_dict)
+            acc, cart_error, angle_error, mse, mae = sess.run([acc_op, cart_op, ang_er_op, mse_op, mae_op], feed_dict=feed_dict)
             total_acc += acc
             total_cart_error += cart_error
+            total_angle_error += angle_error
             total_mse += mse
             total_mae += mae
             total_exp += self.eval_batch_size
@@ -804,8 +814,12 @@ class MicroChild(Model):
             print("")
         print("{}_accuracy: {:<6.4f}".format(
             eval_set, float(total_acc) / total_exp))
-        print("{}_cart_error: {:<6.4f}".format(
-            eval_set, float(total_cart_error) / total_exp))
+        if self.rotation_only is False:
+            print("{}_cart_error: {:<6.4f}".format(
+                eval_set, float(total_cart_error) / total_exp))
+        if self.translation_only is False:
+            print("{}_angle_error: {:<6.4f}".format(
+                eval_set, float(total_angle_error) / total_exp))
         print("{}_mse: {:<6.4f}".format(
             eval_set, float(total_mse) / total_exp))
         print("{}_mae: {:<6.4f}".format(
@@ -856,7 +870,10 @@ class MicroChild(Model):
             self.train_acc = tf.reduce_sum(self.train_acc)
             self.train_cart_error = grasp_metrics.cart_error(
                 self.y_train, self.train_preds)
-            self.train_cart_error = tf.reduce_mean(self.train_cart_error)
+            if self.rotation_only is True:
+                self.train_cart_error = tf.zeros([1])
+            else:
+                self.train_cart_error = tf.reduce_mean(self.train_cart_error)
             if self.translation_only is True:
                 self.train_angle_error = tf.zeros([1])
             else:
@@ -925,7 +942,10 @@ class MicroChild(Model):
                     labels=self.y_valid, predictions=self.valid_preds))
                 self.valid_cart_error = grasp_metrics.cart_error(
                   self.y_valid, self.valid_preds)
-                self.valid_cart_error = tf.reduce_mean(self.valid_cart_error)
+                if self.rotation_only is True:
+                    self.valid_cart_error = tf.zeros([1])
+                else:
+                    self.valid_cart_error = tf.reduce_mean(self.valid_cart_error)
                 if self.translation_only is True:
                     self.valid_angle_error = tf.zeros([1])
                 else:
@@ -958,7 +978,10 @@ class MicroChild(Model):
             self.test_acc = tf.reduce_sum(self.test_acc)
             self.test_cart_error = grasp_metrics.cart_error(
                 self.y_test, self.test_preds)
-            self.test_cart_error = tf.reduce_mean(self.test_cart_error)
+            if self.rotation_only is True:
+                self.test_cart_error = tf.zeros([1])
+            else:
+                self.test_cart_error = tf.reduce_mean(self.test_cart_error)
             if self.translation_only is True:
                 self.test_angle_error = tf.zeros([1])
             else:
@@ -1046,7 +1069,10 @@ class MicroChild(Model):
                     labels=self.y_valid_shuffle, predictions=self.valid_shuffle_preds))
             self.valid_shuffle_cart_error = grasp_metrics.cart_error(
                 self.y_valid_shuffle, self.valid_shuffle_preds)
-            self.valid_shuffle_cart_error = tf.reduce_mean(self.valid_shuffle_cart_error)
+            if self.rotation_only is True:
+                self.valid_shuffle_cart_error = tf.zeros([1])
+            else:
+                self.valid_shuffle_cart_error = tf.reduce_mean(self.valid_shuffle_cart_error)
             if self.translation_only is True:
                 self.valid_shuffle_angle_error = tf.zeros([1])
             else:
