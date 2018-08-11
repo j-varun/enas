@@ -809,7 +809,7 @@ class MicroChild(Model):
         if verbose:
             print("")
         print("{}_accuracy: {:<6.4f}".format(
-            eval_set, float(total_acc) / num_batches))
+            eval_set, float(total_acc) / total_exp))
         if self.rotation_only is False:
             print("{}_cart_error: {:<6.4f}".format(
                 eval_set, float(total_cart_error) / num_batches))
@@ -863,7 +863,7 @@ class MicroChild(Model):
                 self.y_train, self.train_preds)
             print("train_acc--------------", self.train_acc)
             self.train_acc = cast_type(self.train_acc)
-            self.train_acc = tf.reduce_sum(self.train_acc)
+            self.train_acc = tf.reduce_mean(self.train_acc)
             self.train_cart_error = grasp_metrics.cart_error(
                 self.y_train, self.train_preds)
             if self.rotation_only is True:
