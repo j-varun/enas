@@ -166,9 +166,9 @@ def norm(x, is_training, name=None, decay=0.9, epsilon=1e-5, data_format="NHWC",
       else:
         raise NotImplementedError("Unknown data_format {}".format(data_format))
 
-      N, C, H, W = x.get_shape().as_list()
-      G = min(G, C)
-      x = tf.reshape(x, tf.convert_to_tensor([N, G, C // G, H, W]))
+      N, C, H, W = x.get_shape()
+      G = tf.minimum(G, C)
+      x = tf.reshape(x, [N, G, C // G, H, W])
       mean, var = tf.nn.moments(x, [2, 3, 4], keep_dims=True)
       x = (x - mean) / tf.sqrt(var + epsilon)
       # per channel gamma and beta
@@ -179,7 +179,7 @@ def norm(x, is_training, name=None, decay=0.9, epsilon=1e-5, data_format="NHWC",
       gamma = tf.reshape(gamma, [1, C, 1, 1])
       beta = tf.reshape(beta, [1, C, 1, 1])
 
-      output = tf.reshape(x, tf.convert_to_tensor([N, C, H, W])) * gamma + beta
+      output = tf.reshape(x, [N, C, H, W]) * gamma + beta
 
       if data_format == "NHWC":
           # tranpose: [bs, c, h, w, c] to [bs, h, w, c] following the paper
