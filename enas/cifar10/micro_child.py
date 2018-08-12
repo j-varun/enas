@@ -726,6 +726,12 @@ class MicroChild(Model):
         out = tf.gather(out, indices, axis=0)
 
         inp = prev_layers[0]
+        if self.verbose > 0:
+            print('-' * 80)
+            shape_list = inp.get_shape().as_list()
+            print('_enas_layer::inp tensor: ' + str(inp) + ' shape: ' + str(shape_list) + ' data_format: ' + str(self.data_format))
+            for line in traceback.format_stack():
+                print(line.strip())
         if self.data_format == "NHWC":
             N = tf.shape(inp)[0]
             H = tf.shape(inp)[1]
