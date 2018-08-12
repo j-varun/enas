@@ -349,8 +349,8 @@ class MicroChild(Model):
                             w = create_weight("w", [hw, hw, inp_c, 768])
                             aux_logits = tf.nn.conv2d(aux_logits, w, [1, 1, 1, 1], "SAME",
                                                       data_format=self.data_format)
-                            aux_logits = norm(aux_logits,  is_training=is_training,,
-                                                    data_format=self.data_format)
+                            aux_logits = norm(aux_logits,  is_training=is_training,
+                                              data_format=self.data_format)
                             aux_logits = tf.nn.relu(aux_logits)
 
                         with tf.variable_scope("fc"):
