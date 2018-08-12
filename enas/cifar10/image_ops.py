@@ -158,6 +158,7 @@ def norm(x, is_training, name=None, decay=0.9, epsilon=1e-5, data_format="NHWC",
     elif norm_type == 'group':
       # normalize
       # tranpose: [bs, h, w, c] to [bs, c, h, w] following the paper
+      print('batch_norm input x shape: ' + str(x.get_shape().as_list()))
       if data_format == "NHWC":
           x = tf.transpose(x, [0, 3, 1, 2])
           c_shape = x.get_shape().as_list()[3]
