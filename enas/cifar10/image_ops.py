@@ -210,8 +210,9 @@ def norm(x, is_training, name=None, decay=0.9, epsilon=1e-5, data_format="NHWC",
       else:
         raise NotImplementedError("Unknown data_format {}".format(data_format))
       # recover initial shape information
-      # first index is batch, that should be inferred
-      shape_list[0] = -1
+      if shape_list[0] is None:
+        # first index is batch, that should be inferred
+        shape_list[0] = -1
       output = tf.reshape(output, shape_list)
     else:
         raise NotImplementedError
