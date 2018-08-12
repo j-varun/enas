@@ -293,7 +293,8 @@ class MicroChild(Model):
                     if layer_id not in self.pool_layers:
                         if self.fixed_arc is None:
                             x = self._enas_layer(
-                                layer_id, layers, self.normal_arc, out_filters)
+                                    layer_id, layers, self.normal_arc, out_filters,
+                                    is_training=is_training)
                         else:
                             x = self._fixed_layer(
                                 layer_id, layers, self.normal_arc, out_filters,
@@ -306,7 +307,8 @@ class MicroChild(Model):
                                 x, out_filters, 2, is_training)
                             layers = [layers[-1], x]
                             x = self._enas_layer(
-                                layer_id, layers, self.reduce_arc, out_filters)
+                                layer_id, layers, self.reduce_arc, out_filters,
+                                is_training)
                         else:
                             x = self._fixed_layer(
                                 layer_id, layers, self.reduce_arc, out_filters,
@@ -565,7 +567,7 @@ class MicroChild(Model):
 
         return out
 
-    def _enas_cell(self, x, curr_cell, prev_cell, op_id, out_filters):
+    def _enas_cell(self, x, curr_cell, prev_cell, op_id, out_filters, is_training):
         """Performs an enas operation specified by op_id."""
 
         num_possible_inputs = curr_cell + 1
@@ -583,8 +585,8 @@ class MicroChild(Model):
                     avg_pool = tf.nn.relu(avg_pool)
                     avg_pool = tf.nn.conv2d(avg_pool, w, strides=[1, 1, 1, 1],
                                             padding="SAME", data_format=self.data_format)
-                    avg_pool = norm(avg_pool, is_training=True,
-                                          data_format=self.data_format)
+                    avg_pool = norm(avg_pool, is_training=is_training,
+                                    data_format=self.data_format)
 
         with tf.variable_scope("max_pool"):
             max_pool = tf.layers.max_pooling2d(
@@ -599,7 +601,7 @@ class MicroChild(Model):
                     max_pool = tf.nn.relu(max_pool)
                     max_pool = tf.nn.conv2d(max_pool, w, strides=[1, 1, 1, 1],
                                             padding="SAME", data_format=self.data_format)
-                    max_pool = norm(max_pool, is_training=True,
+                    max_pool = norm(max_pool, is_training=is_training,
                                     data_format=self.data_format)
 
         x_c = self._get_C(x)
@@ -612,12 +614,12 @@ class MicroChild(Model):
                 x = tf.nn.relu(x)
                 x = tf.nn.conv2d(x, w, strides=[1, 1, 1, 1], padding="SAME",
                                  data_format=self.data_format)
-                x = norm(x, is_training=True,
+                x = norm(x, is_training=is_training,
                          data_format=self.data_format)
 
         out = [
-            self._enas_conv(x, curr_cell, prev_cell, 3, out_filters),
-            self._enas_conv(x, curr_cell, prev_cell, 5, out_filters),
+            self._enas_conv(x, curr_cell, prev_cell, 3, out_filters, is_training=is_training),
+            self._enas_conv(x, curr_cell, prev_cell, 5, out_filters, is_training=is_training),
             avg_pool,
             max_pool,
             x,
@@ -660,7 +662,7 @@ class MicroChild(Model):
                     x = norm(x, is_training, norm_type=norm_type)
         return x
 
-    def _enas_layer(self, layer_id, prev_layers, arc, out_filters):
+    def _enas_layer(self, layer_id, prev_layers, arc, out_filters, is_training):
         """
         Args:
           layer_id: current layer
@@ -681,7 +683,7 @@ class MicroChild(Model):
                     x_id = arc[4 * cell_id]
                     x_op = arc[4 * cell_id + 1]
                     x = prev_layers[x_id, :, :, :, :]
-                    x = self._enas_cell(x, cell_id, x_id, x_op, out_filters)
+                    x = self._enas_cell(x, cell_id, x_id, x_op, out_filters, is_training=is_training)
                     x_used = tf.one_hot(
                         x_id, depth=self.num_cells + 2, dtype=tf.int32)
 
@@ -689,7 +691,7 @@ class MicroChild(Model):
                     y_id = arc[4 * cell_id + 2]
                     y_op = arc[4 * cell_id + 3]
                     y = prev_layers[y_id, :, :, :, :]
-                    y = self._enas_cell(y, cell_id, y_id, y_op, out_filters)
+                    y = self._enas_cell(y, cell_id, y_id, y_op, out_filters, is_training=is_training)
                     y_used = tf.one_hot(
                         y_id, depth=self.num_cells + 2, dtype=tf.int32)
 
@@ -912,7 +914,7 @@ class MicroChild(Model):
             print("-" * 80)
             print("Build valid graph")
             logits = self._model(
-                self.x_valid, False, reuse=True)
+                self.x_valid, False, reuse=True, is_training=False)
             if self.dataset == "stacking":
                 logits = tf.nn.sigmoid(logits)
                 cast_type = tf.to_float
@@ -950,7 +952,7 @@ class MicroChild(Model):
     def _build_test(self):
         print("-" * 80)
         print("Build test graph")
-        logits = self._model(self.x_test, False, reuse=True)
+        logits = self._model(self.x_test, False, reuse=True, is_training=False)
         if self.dataset == "stacking":
             logits = tf.nn.sigmoid(logits)
             cast_type = tf.to_float
