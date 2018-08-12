@@ -145,6 +145,12 @@ def norm(x, is_training, name=None, decay=0.9, epsilon=1e-5, data_format="NHWC",
 
   reference: https://github.com/shaohua0116/Group-Normalization-Tensorflow
   """
+  if data_format == "NHWC":
+    c_shape = [x.get_shape()[3]]
+  elif data_format == "NCHW":
+    c_shape = [x.get_shape()[1]]
+  else:
+    raise NotImplementedError("Unknown data_format {}".format(data_format))
   if name is None:
       name = norm_type + '_norm'
   with tf.variable_scope(name, reuse=None if is_training else True):
@@ -161,11 +167,12 @@ def norm(x, is_training, name=None, decay=0.9, epsilon=1e-5, data_format="NHWC",
       print('batch_norm input x shape: ' + str(x.get_shape().as_list()))
       if data_format == "NHWC":
           x = tf.transpose(x, [0, 3, 1, 2])
-          c_shape = [x.get_shape()[3]]
+          # c_shape = [x.get_shape()[3]]
           # channels_axis=-1, reduction_axes=[-3, -2]
       elif data_format == "NCHW":
+          pass
           # already in the right format
-          c_shape = [x.get_shape()[1]]
+          # c_shape = [x.get_shape()[1]]
           # channels_axis=-3, reduction_axes=[-2, -1]
       else:
         raise NotImplementedError("Unknown data_format {}".format(data_format))
