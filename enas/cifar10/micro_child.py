@@ -112,6 +112,7 @@ class MicroChild(Model):
         self.num_cells = num_cells
         self.fixed_arc = fixed_arc
         self.translation_only = translation_only
+        self.verbose = 1
 
         self.global_step = tf.Variable(
             0, dtype=tf.int32, trainable=False, name="global_step")
@@ -136,7 +137,7 @@ class MicroChild(Model):
                 w = create_weight("w", [1, 1, inp_c, out_filters])
                 x = tf.nn.conv2d(x, w, [1, 1, 1, 1], "SAME",
                                  data_format=self.data_format)
-                x = norm(x, is_training, data_format=self.data_format)
+                x = norm(x, is_training=is_training, data_format=self.data_format)
                 return x
 
         stride_spec = self._get_strides(stride)
@@ -173,7 +174,7 @@ class MicroChild(Model):
 
         # Concat and apply BN
         final_path = tf.concat(values=[path1, path2], axis=concat_axis)
-        final_path = norm(final_path, is_training,
+        final_path = norm(final_path, is_training=is_training,
                           data_format=self.data_format)
 
         return final_path
@@ -249,7 +250,7 @@ class MicroChild(Model):
                     x = tf.nn.conv2d(x, w, [1, 1, 1, 1], "SAME",
                                      data_format=self.data_format)
                     x = norm(
-                        x, is_training, data_format=self.data_format)
+                        x, is_training=is_training, data_format=self.data_format)
 
             y = layers[1]
             if c[1] != out_filters:
@@ -259,10 +260,10 @@ class MicroChild(Model):
                     y = tf.nn.conv2d(y, w, [1, 1, 1, 1], "SAME",
                                      data_format=self.data_format)
                     y = norm(
-                        y, is_training, data_format=self.data_format)
+                        y, is_training=is_training, data_format=self.data_format)
         return [x, y]
 
-    def _model(self, images, is_training, reuse=False):
+    def _model(self, images, is_training=is_training, reuse=False):
         """Compute the logits given the images."""
 
         if self.fixed_arc is None:
@@ -279,7 +280,7 @@ class MicroChild(Model):
                 x = tf.nn.conv2d(
                     images, w, [1, 1, 1, 1], "SAME",
                     data_format=self.data_format)
-                x = norm(x, is_training, data_format=self.data_format)
+                x = norm(x, is_training=is_training, data_format=self.data_format)
             if self.data_format == "NHWC":
                 split_axis = 3
             elif self.data_format == "NCHW":
@@ -378,7 +379,7 @@ class MicroChild(Model):
                 x = tf.matmul(x, w)
         return x
 
-    def _fixed_conv(self, x, f_size, out_filters, stride, is_training,
+    def _fixed_conv(self, x, f_size, out_filters, stride, is_training=is_training,
                     stack_convs=2):
         """Apply fixed convolution.
 
@@ -404,11 +405,11 @@ class MicroChild(Model):
                     depthwise_filter=w_depthwise,
                     pointwise_filter=w_pointwise,
                     strides=strides, padding="SAME", data_format=self.data_format)
-                x = norm(x, is_training, data_format=self.data_format)
+                x = norm(x, is_training=is_training, data_format=self.data_format)
 
         return x
 
-    def _fixed_combine(self, layers, used, out_filters, is_training,
+    def _fixed_combine(self, layers, used, out_filters, is_training=is_training,
                        normal_or_reduction_cell="normal"):
         """Adjust if necessary.
 
@@ -446,7 +447,7 @@ class MicroChild(Model):
         return out
 
     def _fixed_layer(self, layer_id, prev_layers, arc, out_filters, stride,
-                     is_training, normal_or_reduction_cell="normal"):
+                     is_training=is_training, normal_or_reduction_cell="normal"):
         """
         Args:
           prev_layers: cache of previous layers. for skip connections
@@ -465,7 +466,7 @@ class MicroChild(Model):
             x = tf.nn.relu(x)
             x = tf.nn.conv2d(x, w, [1, 1, 1, 1], "SAME",
                              data_format=self.data_format)
-            x = norm(x, is_training, data_format=self.data_format)
+            x = norm(x, is_training=is_training, data_format=self.data_format)
             layers[1] = x
 
         used = np.zeros([self.num_cells + 2], dtype=np.int32)
@@ -498,7 +499,7 @@ class MicroChild(Model):
                             x = tf.nn.conv2d(x, w, [1, 1, 1, 1], "SAME",
                                              data_format=self.data_format)
                             x = norm(
-                                x, is_training, data_format=self.data_format)
+                                x, is_training=is_training, data_format=self.data_format)
                     else:
                         inp_c = self._get_C(x)
                         if x_stride > 1:
@@ -511,7 +512,7 @@ class MicroChild(Model):
                             x = tf.nn.conv2d(
                                 x, w, [1, 1, 1, 1], "SAME", data_format=self.data_format)
                             x = norm(
-                                x, is_training, data_format=self.data_format)
+                                x, is_training=is_training, data_format=self.data_format)
                     if (x_op in [0, 1, 2, 3] and
                         self.drop_path_keep_prob is not None and
                             is_training):
@@ -543,7 +544,7 @@ class MicroChild(Model):
                             y = tf.nn.conv2d(y, w, [1, 1, 1, 1], "SAME",
                                              data_format=self.data_format)
                             y = norm(
-                                y, is_training, data_format=self.data_format)
+                                y, is_training=is_training, data_format=self.data_format)
                     else:
                         inp_c = self._get_C(y)
                         if y_stride > 1:
@@ -556,7 +557,7 @@ class MicroChild(Model):
                             y = tf.nn.conv2d(y, w, [1, 1, 1, 1], "SAME",
                                              data_format=self.data_format)
                             y = norm(
-                                y, is_training, data_format=self.data_format)
+                                y, is_training=is_training, data_format=self.data_format)
 
                     if (y_op in [0, 1, 2, 3] and
                         self.drop_path_keep_prob is not None and
@@ -565,7 +566,7 @@ class MicroChild(Model):
 
                 out = x + y
                 layers.append(out)
-        out = self._fixed_combine(layers, used, out_filters, is_training,
+        out = self._fixed_combine(layers, used, out_filters, is_training=is_training,
                                   normal_or_reduction_cell)
 
         return out
@@ -632,7 +633,7 @@ class MicroChild(Model):
         out = out[op_id, :, :, :, :]
         return out
 
-    def _enas_conv(self, x, curr_cell, prev_cell, filter_size, out_filters, is_training,
+    def _enas_conv(self, x, curr_cell, prev_cell, filter_size, out_filters, is_training=is_training,
                    stack_conv=2, norm_type='group'):
         """Performs an enas convolution specified by the relevant parameters."""
 
@@ -662,7 +663,7 @@ class MicroChild(Model):
                         pointwise_filter=w_pointwise,
                         strides=[1, 1, 1, 1], padding="SAME",
                         data_format=self.data_format)
-                    x = norm(x, is_training, norm_type=norm_type)
+                    x = norm(x, is_training=is_training, norm_type=norm_type)
         return x
 
     def _enas_layer(self, layer_id, prev_layers, arc, out_filters, is_training):
@@ -730,6 +731,12 @@ class MicroChild(Model):
                 "Unknown data_format '{0}'".format(self.data_format))
 
         with tf.variable_scope("final_conv"):
+            if self.verbose > 0:
+                print('-' * 80)
+                shape_list = out.get_shape().as_list()
+                print('group_norm input x shape outside scope: ' + str(shape_list) + ' data_format: ' + str(data_format))
+                for line in traceback.format_stack():
+                    print(line.strip())
             w = create_weight(
                 "w", [self.num_cells + 2, out_filters * out_filters])
             w = tf.gather(w, indices, axis=0)
