@@ -725,11 +725,11 @@ class MicroChild(Model):
         out = tf.stack(layers, axis=0)
         out = tf.gather(out, indices, axis=0)
 
-        inp = prev_layers[0]
+        inp = prev_layers[0
+        inp_shape_list = inp.get_shape().as_list()
         if self.verbose > 0:
             print('-' * 80)
-            shape_list = inp.get_shape().as_list()
-            print('_enas_layer::inp tensor: ' + str(inp) + ' shape: ' + str(shape_list) + ' data_format: ' + str(self.data_format))
+            print('_enas_layer::inp tensor: ' + str(inp) + ' shape: ' + str(inp_shape_list) + ' data_format: ' + str(self.data_format))
             out_shape_list = out.get_shape().as_list()
             print('_enas_layer::out tensor: ' + str(out) + ' shape: ' + str(out_shape_list) + ' data_format: ' + str(self.data_format))
             print('_enas_layer::num_outs: ' + str(num_outs) + ' _enas_layer::out_filters: ' + str(out_filters))
@@ -737,16 +737,16 @@ class MicroChild(Model):
                 print(line.strip())
         if self.data_format == "NHWC":
             N = tf.shape(inp)[0]
-            H = tf.shape(inp)[1]
-            W = tf.shape(inp)[2]
-            C = tf.shape(inp)[3]
+            H = inp_shape_list[1]
+            W = inp_shape_list[2]
+            C = inp_shape_list[3]
             out = tf.transpose(out, [1, 2, 3, 0, 4])
             out = tf.reshape(out, [N, H, W, num_outs * out_filters])
         elif self.data_format == "NCHW":
             N = tf.shape(inp)[0]
-            C = tf.shape(inp)[1]
-            H = tf.shape(inp)[2]
-            W = tf.shape(inp)[3]
+            C = inp_shape_list[1]
+            H = inp_shape_list[2]
+            W = inp_shape_list[3]
             out = tf.transpose(out, [1, 0, 2, 3, 4])
             out = tf.reshape(out, [N, num_outs * out_filters, H, W])
         else:
