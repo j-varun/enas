@@ -725,7 +725,7 @@ class MicroChild(Model):
         out = tf.stack(layers, axis=0)
         out = tf.gather(out, indices, axis=0)
 
-        inp = prev_layers[0
+        inp = prev_layers[0]
         inp_shape_list = inp.get_shape().as_list()
         if self.verbose > 0:
             print('-' * 80)
