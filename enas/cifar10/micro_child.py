@@ -339,8 +339,8 @@ class MicroChild(Model):
                                                       [1, 1, 1, 1], "SAME",
                                                       data_format=self.data_format)
                             aux_logits = norm(aux_logits,
-                                                    is_training=True,
-                                                    data_format=self.data_format)
+                                              is_training=is_training,
+                                              data_format=self.data_format)
                             aux_logits = tf.nn.relu(aux_logits)
 
                         with tf.variable_scope("avg_pool"):
@@ -349,7 +349,7 @@ class MicroChild(Model):
                             w = create_weight("w", [hw, hw, inp_c, 768])
                             aux_logits = tf.nn.conv2d(aux_logits, w, [1, 1, 1, 1], "SAME",
                                                       data_format=self.data_format)
-                            aux_logits = norm(aux_logits, is_training=True,
+                            aux_logits = norm(aux_logits,  is_training=is_training,,
                                                     data_format=self.data_format)
                             aux_logits = tf.nn.relu(aux_logits)
 
@@ -567,7 +567,7 @@ class MicroChild(Model):
                 out = x + y
                 layers.append(out)
         out = self._fixed_combine(layers, used, out_filters, is_training=is_training,
-                                  normal_or_reduction_cell)
+                                  normal_or_reduction_cell=normal_or_reduction_cell)
 
         return out
 
@@ -744,7 +744,7 @@ class MicroChild(Model):
             out = tf.nn.relu(out)
             out = tf.nn.conv2d(out, w, strides=[1, 1, 1, 1], padding="SAME",
                                data_format=self.data_format)
-            out = norm(out, is_training=True,
+            out = norm(out, is_training=is_training,
                        data_format=self.data_format)
 
         out = tf.reshape(out, tf.shape(prev_layers[0]))
@@ -1050,6 +1050,7 @@ class MicroChild(Model):
                     x_valid_shuffle = tf.map_fn(
                         _pre_process, x_valid_shuffle, back_prop=False)
 
+        # TODO(ahundt) should is_training really be true here? this looks like a validation step... but it is in the controller so maybe some training does happen...
         logits = self._model(
             self.x_valid_shuffle, is_training=True, reuse=True)
         if self.dataset == "stacking":
