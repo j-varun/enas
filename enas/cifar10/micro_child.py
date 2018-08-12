@@ -704,6 +704,12 @@ class MicroChild(Model):
                 out = x + y
                 used.extend([x_used, y_used])
                 layers.append(out)
+                if self.verbose > 0:
+                    print('-' * 80)
+                    shape_list = out.get_shape().as_list()
+                    print('_enas_layer::cell out shape: ' + str(shape_list) + ' data_format: ' + str(self.data_format))
+                    for line in traceback.format_stack():
+                        print(line.strip())
 
         used = tf.add_n(used)
         indices = tf.where(tf.equal(used, 0))
@@ -736,7 +742,7 @@ class MicroChild(Model):
             if self.verbose > 0:
                 print('-' * 80)
                 shape_list = out.get_shape().as_list()
-                print('final_conv input x shape outside scope: ' + str(shape_list) + ' data_format: ' + str(self.data_format))
+                print('_enas_layer::final_conv out shape: ' + str(shape_list) + ' data_format: ' + str(self.data_format))
                 for line in traceback.format_stack():
                     print(line.strip())
             w = create_weight(
