@@ -380,7 +380,7 @@ class MicroChild(Model):
                 x = tf.matmul(x, w)
         return x
 
-    def _fixed_conv(self, x, f_size, out_filters, stride, is_training=is_training,
+    def _fixed_conv(self, x, f_size, out_filters, stride, is_training,
                     stack_convs=2):
         """Apply fixed convolution.
 
@@ -410,7 +410,7 @@ class MicroChild(Model):
 
         return x
 
-    def _fixed_combine(self, layers, used, out_filters, is_training=is_training,
+    def _fixed_combine(self, layers, used, out_filters, is_training,
                        normal_or_reduction_cell="normal"):
         """Adjust if necessary.
 
@@ -448,7 +448,7 @@ class MicroChild(Model):
         return out
 
     def _fixed_layer(self, layer_id, prev_layers, arc, out_filters, stride,
-                     is_training=is_training, normal_or_reduction_cell="normal"):
+                     is_training, normal_or_reduction_cell="normal"):
         """
         Args:
           prev_layers: cache of previous layers. for skip connections
@@ -634,7 +634,7 @@ class MicroChild(Model):
         out = out[op_id, :, :, :, :]
         return out
 
-    def _enas_conv(self, x, curr_cell, prev_cell, filter_size, out_filters, is_training=is_training,
+    def _enas_conv(self, x, curr_cell, prev_cell, filter_size, out_filters, is_training,
                    stack_conv=2, norm_type='group'):
         """Performs an enas convolution specified by the relevant parameters."""
 
