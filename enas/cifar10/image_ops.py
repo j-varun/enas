@@ -142,9 +142,10 @@ def batch_norm(x, is_training, name="bn", decay=0.9, epsilon=1e-5,
 
 def norm(x, is_training, name=None, decay=0.9, epsilon=1e-5, data_format="NHWC", norm_type='group', G=32):
   """ Perform batch normalization or group normalization, depending on norm_type argument.
-
+  norm_type: options include, none, batch, and group.
   reference: https://github.com/shaohua0116/Group-Normalization-Tensorflow
   """
+  print('group_norm input x shape outside scope: ' + str(x.get_shape().as_list()) + ' data_format: ' + str(data_format))
   if data_format == "NHWC":
     c_shape = [x.get_shape()[3]]
   elif data_format == "NCHW":
@@ -164,7 +165,7 @@ def norm(x, is_training, name=None, decay=0.9, epsilon=1e-5, data_format="NHWC",
     elif norm_type == 'group':
       # normalize
       # tranpose: [bs, h, w, c] to [bs, c, h, w] following the paper
-      print('batch_norm input x shape: ' + str(x.get_shape().as_list()))
+      print('group_norm input x shape inside scope: ' + str(x.get_shape().as_list()))
       if data_format == "NHWC":
           x = tf.transpose(x, [0, 3, 1, 2])
           # c_shape = [x.get_shape()[3]]
