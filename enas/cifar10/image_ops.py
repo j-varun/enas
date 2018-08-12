@@ -148,6 +148,7 @@ def norm(x, is_training, name=None, decay=0.9, epsilon=1e-5, data_format="NHWC",
   """
   shape_list = x.get_shape().as_list()
   if verbose > 0:
+    print('-' * 80)
     print('group_norm input x shape outside scope: ' + str(shape_list) + ' data_format: ' + str(data_format))
     for line in traceback.format_stack():
         print(line.strip())
