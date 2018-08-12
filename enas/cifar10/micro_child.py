@@ -735,7 +735,7 @@ class MicroChild(Model):
             if self.verbose > 0:
                 print('-' * 80)
                 shape_list = out.get_shape().as_list()
-                print('group_norm input x shape outside scope: ' + str(shape_list) + ' data_format: ' + str(data_format))
+                print('final_conv input x shape outside scope: ' + str(shape_list) + ' data_format: ' + str(self.data_format))
                 for line in traceback.format_stack():
                     print(line.strip())
             w = create_weight(
