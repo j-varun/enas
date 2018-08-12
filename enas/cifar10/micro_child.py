@@ -732,6 +732,7 @@ class MicroChild(Model):
             print('_enas_layer::inp tensor: ' + str(inp) + ' shape: ' + str(shape_list) + ' data_format: ' + str(self.data_format))
             out_shape_list = out.get_shape().as_list()
             print('_enas_layer::out tensor: ' + str(out) + ' shape: ' + str(out_shape_list) + ' data_format: ' + str(self.data_format))
+            print('_enas_layer::num_outs: ' + str(num_outs) + ' _enas_layer::out_filters: ' + str(out_filters))
             for line in traceback.format_stack():
                 print(line.strip())
         if self.data_format == "NHWC":
