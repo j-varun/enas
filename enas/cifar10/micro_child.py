@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import os
 import sys
+import traceback
 
 import numpy as np
 import tensorflow as tf
