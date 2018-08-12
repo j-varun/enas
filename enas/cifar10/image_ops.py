@@ -166,7 +166,10 @@ def norm(x, is_training, name=None, decay=0.9, epsilon=1e-5, data_format="NHWC",
       else:
         raise NotImplementedError("Unknown data_format {}".format(data_format))
 
-      N, C, H, W = x.get_shape()
+      N = x.shape[0]
+      C = x.shape[1]
+      H = x.shape[2]
+      W = x.shape[3]
       G = tf.minimum(G, C)
       x = tf.reshape(x, [N, G, C // G, H, W])
       mean, var = tf.nn.moments(x, [2, 3, 4], keep_dims=True)
