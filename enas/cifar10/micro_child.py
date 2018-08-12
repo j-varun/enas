@@ -632,6 +632,12 @@ class MicroChild(Model):
         ]
 
         out = tf.stack(out, axis=0)
+        if self.verbose > 0:
+            print('-' * 80)
+            shape_list = out.get_shape().as_list()
+            print('_enas_cell::cell op_id: ' + str(op_id) + ' out shape: ' + str(shape_list) + ' data_format: ' + str(self.data_format))
+            for line in traceback.format_stack():
+                print(line.strip())
         out = out[op_id, :, :, :, :]
         return out
 
@@ -707,7 +713,7 @@ class MicroChild(Model):
                 if self.verbose > 0:
                     print('-' * 80)
                     shape_list = out.get_shape().as_list()
-                    print('_enas_layer::cell out shape: ' + str(shape_list) + ' data_format: ' + str(self.data_format))
+                    print('_enas_layer::cell cell_id: ' + str(cell_id) + ' out shape: ' + str(shape_list) + ' data_format: ' + str(self.data_format))
                     for line in traceback.format_stack():
                         print(line.strip())
 
