@@ -301,7 +301,7 @@ class MicroChild(Model):
                         else:
                             x = self._fixed_layer(
                                 layer_id, layers, self.normal_arc, out_filters,
-                                1, is_training,
+                                1, is_training=is_training,
                                 normal_or_reduction_cell="normal")
                     else:
                         out_filters *= 2
@@ -311,11 +311,11 @@ class MicroChild(Model):
                             layers = [layers[-1], x]
                             x = self._enas_layer(
                                 layer_id, layers, self.reduce_arc, out_filters,
-                                is_training)
+                                is_training=is_training)
                         else:
                             x = self._fixed_layer(
                                 layer_id, layers, self.reduce_arc, out_filters,
-                                2, is_training,
+                                2, is_training=is_training,
                                 normal_or_reduction_cell="reduction")
                     print("Layer {0:>2d}: {1}".format(layer_id, x))
                     layers = [layers[-1], x]
