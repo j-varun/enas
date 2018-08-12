@@ -160,10 +160,10 @@ def norm(x, is_training, name=None, decay=0.9, epsilon=1e-5, data_format="NHWC",
       # tranpose: [bs, h, w, c] to [bs, c, h, w] following the paper
       if data_format == "NHWC":
           x = tf.transpose(x, [0, 3, 1, 2])
-          c_shape = [x.get_shape()[3]]
+          c_shape = [x.get_shape().as_list()[3]]
       elif data_format == "NCHW":
           # already in the right format
-          c_shape = [x.get_shape()[1]]
+          c_shape = [x.get_shape().as_list()[1]]
       else:
         raise NotImplementedError("Unknown data_format {}".format(data_format))
       shape = tf.shape(x)
@@ -176,9 +176,9 @@ def norm(x, is_training, name=None, decay=0.9, epsilon=1e-5, data_format="NHWC",
       mean, var = tf.nn.moments(x, [2, 3, 4], keep_dims=True)
       x = (x - mean) / tf.sqrt(var + epsilon)
       # per channel gamma and beta
-      gamma = tf.get_variable('gamma', C,
+      gamma = tf.get_variable('gamma', [c_shape],
                               initializer=tf.constant_initializer(1.0))
-      beta = tf.get_variable('beta', C,
+      beta = tf.get_variable('beta', [c_shape],
                              initializer=tf.constant_initializer(0.0))
       gamma = tf.reshape(gamma, [1, C, 1, 1])
       beta = tf.reshape(beta, [1, C, 1, 1])
