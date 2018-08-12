@@ -184,8 +184,10 @@ class MicroChild(Model):
           x: tensor of shape [N, H, W, C] or [N, C, H, W]
         """
         if self.data_format == "NHWC":
+            assert x.get_shape().as_list()[3] is not None
             return x.get_shape()[3].value
         elif self.data_format == "NCHW":
+            assert x.get_shape().as_list()[1] is not None
             return x.get_shape()[1].value
         else:
             raise ValueError(
@@ -196,6 +198,7 @@ class MicroChild(Model):
         Args:
           x: tensor of shape [N, H, W, C] or [N, C, H, W]
         """
+        assert x.get_shape().as_list()[2] is not None
         return x.get_shape()[2].value
 
     def _get_strides(self, stride):
@@ -674,7 +677,7 @@ class MicroChild(Model):
         assert len(prev_layers) == 2, "need exactly 2 inputs"
         layers = [prev_layers[0], prev_layers[1]]
         layers = self._maybe_calibrate_size(
-            layers, out_filters, is_training=True)
+            layers, out_filters, is_training=is_training)
         used = []
         for cell_id in range(self.num_cells):
             prev_layers = tf.stack(layers, axis=0)

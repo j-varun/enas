@@ -102,8 +102,10 @@ class GeneralChild(Model):
       x: tensor of shape [N, H, W, C] or [N, C, H, W]
     """
     if self.data_format == "NHWC":
+      assert x.get_shape().as_list()[3] is not None
       return x.get_shape()[3].value
     elif self.data_format == "NCHW":
+      assert x.get_shape().as_list()[1] is not None
       return x.get_shape()[1].value
     else:
       raise ValueError("Unknown data_format '{0}'".format(self.data_format))
@@ -113,6 +115,7 @@ class GeneralChild(Model):
     Args:
       x: tensor of shape [N, H, W, C] or [N, C, H, W]
     """
+    assert x.get_shape().as_list()[2] is not None
     return x.get_shape()[2].value
 
   def _get_strides(self, stride):
