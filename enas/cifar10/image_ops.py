@@ -141,7 +141,7 @@ def batch_norm(x, is_training, name="bn", decay=0.9, epsilon=1e-5,
   return x
 
 
-def norm(x, is_training, name=None, decay=0.9, epsilon=1e-5, data_format="NHWC", norm_type='group', G=32, verbose=1):
+def norm(x, is_training, name=None, decay=0.9, epsilon=1e-5, data_format="NHWC", norm_type='group', G=32, verbose=0):
   """ Perform batch normalization or group normalization, depending on norm_type argument.
   norm_type: options include, none, batch, and group.
   reference: https://github.com/shaohua0116/Group-Normalization-Tensorflow

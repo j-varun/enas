@@ -113,7 +113,7 @@ class MicroChild(Model):
         self.num_cells = num_cells
         self.fixed_arc = fixed_arc
         self.translation_only = translation_only
-        self.verbose = 1
+        self.verbose = 0
 
         self.global_step = tf.Variable(
             0, dtype=tf.int32, trainable=False, name="global_step")
@@ -726,6 +726,9 @@ class MicroChild(Model):
         out = tf.gather(out, indices, axis=0)
 
         inp = prev_layers[0]
+        # get shape as an integer list,
+        # this is necessary to prevent some shape information being lost
+        # in the transpose/reshape below
         inp_shape_list = inp.get_shape().as_list()
         if self.verbose > 0:
             print('-' * 80)
