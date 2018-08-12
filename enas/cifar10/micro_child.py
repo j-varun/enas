@@ -730,6 +730,8 @@ class MicroChild(Model):
             print('-' * 80)
             shape_list = inp.get_shape().as_list()
             print('_enas_layer::inp tensor: ' + str(inp) + ' shape: ' + str(shape_list) + ' data_format: ' + str(self.data_format))
+            out_shape_list = out.get_shape().as_list()
+            print('_enas_layer::out tensor: ' + str(out) + ' shape: ' + str(out_shape_list) + ' data_format: ' + str(self.data_format))
             for line in traceback.format_stack():
                 print(line.strip())
         if self.data_format == "NHWC":
