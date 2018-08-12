@@ -263,11 +263,12 @@ class MicroChild(Model):
                         y, is_training=is_training, data_format=self.data_format)
         return [x, y]
 
-    def _model(self, images, is_training=is_training, reuse=False):
+    def _model(self, images, is_training, reuse=False):
         """Compute the logits given the images."""
 
-        if self.fixed_arc is None:
-            is_training = True
+        # TODO(ahundt) this line doesn't seem correct, because if doing eval with fixed arcs, training should definitely be false
+        # if self.fixed_arc is None:
+        #     is_training = True
 
         with tf.variable_scope(self.name, reuse=reuse):
             # the first two inputs
