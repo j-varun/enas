@@ -180,9 +180,9 @@ def norm(x, is_training, name=None, decay=0.9, epsilon=1e-5, data_format="NHWC",
       x = (x - mean) / tf.sqrt(var + epsilon)
       # per channel gamma and beta
       gamma = tf.get_variable('gamma', c_shape,
-                              initializer=tf.constant_initializer(1.0))
+                              initializer=tf.constant_initializer(1.0, dtype=tf.float32))
       beta = tf.get_variable('beta', c_shape,
-                             initializer=tf.constant_initializer(0.0))
+                             initializer=tf.constant_initializer(0.0, dtype=tf.float32))
       gamma = tf.reshape(gamma, [1, C, 1, 1])
       beta = tf.reshape(beta, [1, C, 1, 1])
 
