@@ -145,7 +145,8 @@ def norm(x, is_training, name=None, decay=0.9, epsilon=1e-5, data_format="NHWC",
   norm_type: options include, none, batch, and group.
   reference: https://github.com/shaohua0116/Group-Normalization-Tensorflow
   """
-  print('group_norm input x shape outside scope: ' + str(x.get_shape().as_list()) + ' data_format: ' + str(data_format))
+  shape_list = x.get_shape().as_list()
+  print('group_norm input x shape outside scope: ' + str(shape_list) + ' data_format: ' + str(data_format))
   if data_format == "NHWC":
     c_shape = [x.get_shape()[3]]
   elif data_format == "NCHW":
@@ -204,6 +205,10 @@ def norm(x, is_training, name=None, decay=0.9, epsilon=1e-5, data_format="NHWC",
           pass
       else:
         raise NotImplementedError("Unknown data_format {}".format(data_format))
+      # recover initial shape information
+      # first index is batch, that should be inferred
+      shape_list[0] = -1
+      output = tf.reshape(output, shape_list)
     else:
         raise NotImplementedError
   return output
