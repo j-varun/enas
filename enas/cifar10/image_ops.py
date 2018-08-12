@@ -140,6 +140,60 @@ def batch_norm(x, is_training, name="bn", decay=0.9, epsilon=1e-5,
   return x
 
 
+def norm(x, is_training, name=None, decay=0.9, epsilon=1e-5, data_format="NHWC", norm_type='group', G=32):
+  """ Perform batch normalization or group normalization, depending on norm_type argument.
+
+  reference: https://github.com/shaohua0116/Group-Normalization-Tensorflow
+  """
+  if name is None:
+      name = norm_type + '_norm'
+  with tf.variable_scope(name, reuse=None if is_training else True):
+
+    if norm_type == 'none':
+      output = x
+    elif norm_type == 'batch':
+      output = batch_norm(
+        x=x, is_training=is_training, name=name,
+        decay=decay, epsilon=epsilon, data_format=data_format)
+    elif norm_type == 'group':
+      # normalize
+      # tranpose: [bs, h, w, c] to [bs, c, h, w] following the paper
+      if data_format == "NHWC":
+          x = tf.transpose(x, [0, 3, 1, 2])
+      elif data_format == "NCHW":
+          # already in the right format
+          pass
+      else:
+        raise NotImplementedError("Unknown data_format {}".format(data_format))
+
+      N, C, H, W = x.get_shape().as_list()
+      G = min(G, C)
+      x = tf.reshape(x, [N, G, C // G, H, W])
+      mean, var = tf.nn.moments(x, [2, 3, 4], keep_dims=True)
+      x = (x - mean) / tf.sqrt(var + epsilon)
+      # per channel gamma and beta
+      gamma = tf.get_variable('gamma', [C],
+                              initializer=tf.constant_initializer(1.0))
+      beta = tf.get_variable('beta', [C],
+                             initializer=tf.constant_initializer(0.0))
+      gamma = tf.reshape(gamma, [1, C, 1, 1])
+      beta = tf.reshape(beta, [1, C, 1, 1])
+
+      output = tf.reshape(x, [N, C, H, W]) * gamma + beta
+
+      if data_format == "NHWC":
+          # tranpose: [bs, c, h, w, c] to [bs, h, w, c] following the paper
+          output = tf.transpose(output, [0, 2, 3, 1])
+      elif data_format == "NCHW":
+          # already in the right format
+          pass
+      else:
+        raise NotImplementedError("Unknown data_format {}".format(data_format))
+    else:
+        raise NotImplementedError
+  return output
+
+
 def batch_norm_with_mask(x, is_training, mask, num_channels, name="bn",
                          decay=0.9, epsilon=1e-3, data_format="NHWC"):
 

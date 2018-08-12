@@ -12,6 +12,7 @@ from enas.cifar10.models import Model
 from enas.cifar10.image_ops import conv
 from enas.cifar10.image_ops import fully_connected
 from enas.cifar10.image_ops import batch_norm
+from enas.cifar10.image_ops import norm
 from enas.cifar10.image_ops import batch_norm_with_mask
 from enas.cifar10.image_ops import relu
 from enas.cifar10.image_ops import max_pool
@@ -136,7 +137,7 @@ class GeneralChild(Model):
         w = create_weight("w", [1, 1, inp_c, out_filters])
         x = tf.nn.conv2d(x, w, [1, 1, 1, 1], "SAME",
                          data_format=self.data_format)
-        x = batch_norm(x, is_training, data_format=self.data_format)
+        x = norm(x, is_training, data_format=self.data_format)
         return x
 
     stride_spec = self._get_strides(stride)
@@ -171,7 +172,7 @@ class GeneralChild(Model):
 
     # Concat and apply BN
     final_path = tf.concat(values=[path1, path2], axis=concat_axis)
-    final_path = batch_norm(final_path, is_training,
+    final_path = norm(final_path, is_training,
                             data_format=self.data_format)
 
     return final_path
@@ -198,7 +199,7 @@ class GeneralChild(Model):
       with tf.variable_scope("stem_conv"):
         w = create_weight("w", [C, C, C, out_filters])
         x = tf.nn.conv2d(images, w, [1, 1, 1, 1], "SAME", data_format=self.data_format)
-        x = batch_norm(x, is_training, data_format=self.data_format)
+        x = norm(x, is_training, data_format=self.data_format)
         layers.append(x)
 
       if self.whole_channels:
@@ -351,7 +352,7 @@ class GeneralChild(Model):
           branches = tf.reshape(branches, [N, -1, H, W])
         out = tf.nn.conv2d(
           branches, w, [1, 1, 1, 1], "SAME", data_format=self.data_format)
-        out = batch_norm(out, is_training, data_format=self.data_format)
+        out = norm(out, is_training, data_format=self.data_format)
         out = tf.nn.relu(out)
 
     if layer_id > 0:
@@ -368,7 +369,7 @@ class GeneralChild(Model):
                                     lambda: tf.zeros_like(prev_layers[i])))
         res_layers.append(out)
         out = tf.add_n(res_layers)
-        out = batch_norm(out, is_training, data_format=self.data_format)
+        out = norm(out, is_training, data_format=self.data_format)
 
     return out
 
@@ -399,14 +400,14 @@ class GeneralChild(Model):
           out = tf.nn.relu(inputs)
           out = tf.nn.conv2d(out, w, [1, 1, 1, 1], "SAME",
                              data_format=self.data_format)
-          out = batch_norm(out, is_training, data_format=self.data_format)
+          out = norm(out, is_training, data_format=self.data_format)
 
         with tf.variable_scope("conv_{0}x{0}".format(filter_size)):
           w = create_weight("w", [filter_size, filter_size, out_filters, out_filters])
           out = tf.nn.relu(out)
           out = tf.nn.conv2d(out, w, [1, 1, 1, 1], "SAME",
                              data_format=self.data_format)
-          out = batch_norm(out, is_training, data_format=self.data_format)
+          out = norm(out, is_training, data_format=self.data_format)
       elif count == 4:
         pass
       elif count == 5:
@@ -452,7 +453,7 @@ class GeneralChild(Model):
         out = tf.nn.relu(branches)
         out = tf.nn.conv2d(out, w, [1, 1, 1, 1], "SAME",
                            data_format=self.data_format)
-        out = batch_norm(out, is_training, data_format=self.data_format)
+        out = norm(out, is_training, data_format=self.data_format)
 
     if layer_id > 0:
       if self.whole_channels:
@@ -480,7 +481,7 @@ class GeneralChild(Model):
         out = tf.nn.relu(out)
         out = tf.nn.conv2d(
           out, w, [1, 1, 1, 1], "SAME", data_format=self.data_format)
-        out = batch_norm(out, is_training, data_format=self.data_format)
+        out = norm(out, is_training, data_format=self.data_format)
 
     return out
 
@@ -504,7 +505,7 @@ class GeneralChild(Model):
     with tf.variable_scope("inp_conv_1"):
       w = create_weight("w", [1, 1, inp_c, out_filters])
       x = tf.nn.conv2d(inputs, w, [1, 1, 1, 1], "SAME", data_format=self.data_format)
-      x = batch_norm(x, is_training, data_format=self.data_format)
+      x = norm(x, is_training, data_format=self.data_format)
       x = tf.nn.relu(x)
 
     with tf.variable_scope("out_conv_{}".format(filter_size)):
@@ -515,12 +516,13 @@ class GeneralChild(Model):
           w_point = create_weight("w_point", [1, 1, out_filters * ch_mul, count])
           x = tf.nn.separable_conv2d(x, w_depth, w_point, strides=[1, 1, 1, 1],
                                      padding="SAME", data_format=self.data_format)
-          x = batch_norm(x, is_training, data_format=self.data_format)
+          x = norm(x, is_training, data_format=self.data_format)
         else:
           w = create_weight("w", [filter_size, filter_size, inp_c, count])
           x = tf.nn.conv2d(x, w, [1, 1, 1, 1], "SAME", data_format=self.data_format)
-          x = batch_norm(x, is_training, data_format=self.data_format)
+          x = norm(x, is_training, data_format=self.data_format)
       else:
+        print('TODO(ahundt) batch_norm_with_mask is definitely called... make a group norm version!')
         if separable:
           w_depth = create_weight("w_depth", [filter_size, filter_size, out_filters, ch_mul])
           w_point = create_weight("w_point", [out_filters, out_filters * ch_mul])
@@ -566,7 +568,7 @@ class GeneralChild(Model):
     with tf.variable_scope("conv_1"):
       w = create_weight("w", [1, 1, inp_c, self.out_filters])
       x = tf.nn.conv2d(inputs, w, [1, 1, 1, 1], "SAME", data_format=self.data_format)
-      x = batch_norm(x, is_training, data_format=self.data_format)
+      x = norm(x, is_training, data_format=self.data_format)
       x = tf.nn.relu(x)
 
     with tf.variable_scope("pool"):
