@@ -356,7 +356,7 @@ class GeneralChild(Model):
         out = tf.nn.conv2d(
           branches, w, [1, 1, 1, 1], "SAME", data_format=self.data_format)
         out = norm(out, is_training, data_format=self.data_format)
-        out = tf.nn.relu(out)
+        out = tf.nn.elu(out)
 
     if layer_id > 0:
       if self.whole_channels:
@@ -400,14 +400,14 @@ class GeneralChild(Model):
         filter_size = size[count]
         with tf.variable_scope("conv_1x1"):
           w = create_weight("w", [1, 1, inp_c, out_filters])
-          out = tf.nn.relu(inputs)
+          out = tf.nn.elu(inputs)
           out = tf.nn.conv2d(out, w, [1, 1, 1, 1], "SAME",
                              data_format=self.data_format)
           out = norm(out, is_training, data_format=self.data_format)
 
         with tf.variable_scope("conv_{0}x{0}".format(filter_size)):
           w = create_weight("w", [filter_size, filter_size, out_filters, out_filters])
-          out = tf.nn.relu(out)
+          out = tf.nn.elu(out)
           out = tf.nn.conv2d(out, w, [1, 1, 1, 1], "SAME",
                              data_format=self.data_format)
           out = norm(out, is_training, data_format=self.data_format)
@@ -453,7 +453,7 @@ class GeneralChild(Model):
           branches = tf.concat(branches, axis=3)
         elif self.data_format == "NCHW":
           branches = tf.concat(branches, axis=1)
-        out = tf.nn.relu(branches)
+        out = tf.nn.elu(branches)
         out = tf.nn.conv2d(out, w, [1, 1, 1, 1], "SAME",
                            data_format=self.data_format)
         out = norm(out, is_training, data_format=self.data_format)
@@ -481,7 +481,7 @@ class GeneralChild(Model):
       with tf.variable_scope("skip"):
         w = create_weight(
           "w", [1, 1, total_skip_channels * out_filters, out_filters])
-        out = tf.nn.relu(out)
+        out = tf.nn.elu(out)
         out = tf.nn.conv2d(
           out, w, [1, 1, 1, 1], "SAME", data_format=self.data_format)
         out = norm(out, is_training, data_format=self.data_format)
@@ -509,7 +509,7 @@ class GeneralChild(Model):
       w = create_weight("w", [1, 1, inp_c, out_filters])
       x = tf.nn.conv2d(inputs, w, [1, 1, 1, 1], "SAME", data_format=self.data_format)
       x = norm(x, is_training, data_format=self.data_format)
-      x = tf.nn.relu(x)
+      x = tf.nn.elu(x)
 
     with tf.variable_scope("out_conv_{}".format(filter_size)):
       if start_idx is None:
@@ -549,7 +549,7 @@ class GeneralChild(Model):
           mask = tf.logical_and(start_idx <= mask, mask < start_idx + count)
           x = batch_norm_with_mask(
             x, is_training, mask, out_filters, data_format=self.data_format)
-      x = tf.nn.relu(x)
+      x = tf.nn.elu(x)
     return x
 
   def _pool_branch(self, inputs, is_training, count, avg_or_max, start_idx=None):
@@ -572,7 +572,7 @@ class GeneralChild(Model):
       w = create_weight("w", [1, 1, inp_c, self.out_filters])
       x = tf.nn.conv2d(inputs, w, [1, 1, 1, 1], "SAME", data_format=self.data_format)
       x = norm(x, is_training, data_format=self.data_format)
-      x = tf.nn.relu(x)
+      x = tf.nn.elu(x)
 
     with tf.variable_scope("pool"):
       if self.data_format == "NHWC":
