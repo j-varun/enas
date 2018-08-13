@@ -44,6 +44,8 @@ class MicroController(Controller):
                  num_replicas=None,
                  name="controller",
                  max_loss=0,
+                 translation_only=False,
+                 rotation_only=False,
                  dataset="cifar",
                  **kwargs):
 
@@ -79,6 +81,8 @@ class MicroController(Controller):
         self.name = name
         self.dataset = dataset
         self.max_loss = max_loss
+        self.rotation_only = rotation_only
+        self.translation_only = translation_only
 
         self._create_params()
         arc_seq_1, entropy_1, log_prob_1, c, h = self._build_sampler(

@@ -114,6 +114,7 @@ class MicroChild(Model):
         self.num_cells = num_cells
         self.fixed_arc = fixed_arc
         self.translation_only = translation_only
+        self.rotation_only = rotation_only
         self.verbose = 0
 
         self.global_step = tf.Variable(
@@ -1039,6 +1040,11 @@ class MicroChild(Model):
                 if not shuffle:
                     self.x_valid_shuffle, self.y_valid_shuffle = self.x_valid, self.y_valid
                 else:
+                    raise NotImplementedError(
+                        'This portion of the code is not correctly implemented, '
+                        'so it must be fixed before running it. '
+                        'see models.py::__init__() for reference code using the '
+                        'CostarBlockStackingSequence().')
                     data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
                     label_features = ['grasp_goal_xyz_aaxyz_nsc_8']
                     validation_shuffle_generator = CostarBlockStackingSequence(
