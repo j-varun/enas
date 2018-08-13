@@ -63,6 +63,7 @@ class MicroChild(Model):
                  translation_only=False,
                  rotation_only=False,
                  dataset="cifar",
+                 pool_distance=2,
                  **kwargs
                  ):
 
@@ -121,8 +122,15 @@ class MicroChild(Model):
         if self.drop_path_keep_prob is not None:
             assert num_epochs is not None, "Need num_epochs to drop_path"
 
-        pool_distance = self.num_layers // 3
-        self.pool_layers = [pool_distance, 2 * pool_distance + 1]
+        self.pool_distance = pool_distance
+        # pool_distance was originally based on the number of layers
+        # pool_distance = self.num_layers // 3
+        # self.pool_layers = [pool_distance, 2 * pool_distance + 1]
+
+        self.pool_layers = []
+        for layer_num in range(self.num_layers):
+            if layer_num != 0 and layer_num % pool_distance == 0:
+                self.pool_layers += [layer_num]
 
         if self.use_aux_heads:
             self.aux_head_indices = [self.pool_layers[-1] + 1]

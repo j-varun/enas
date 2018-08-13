@@ -55,8 +55,9 @@ DEFINE_integer("max_loss", 0, "To set positive reward; for stacking dataset only
 
 DEFINE_integer("num_epochs", 300, "")
 DEFINE_integer("child_lr_dec_every", 100, "")
-DEFINE_integer("child_num_layers", 5, "")
-DEFINE_integer("child_num_cells", 5, "")
+DEFINE_integer("child_num_layers", 5, "number of layer blocks")
+DEFINE_integer("child_num_cells", 5, "number of cells in a single layer")
+DEFINE_integer("child_pool_distance", 2, "number of layers between each pooling step, which reduces the resolution")
 DEFINE_integer("child_filter_size", 5, "")
 DEFINE_integer("child_out_filters", 48, "")
 DEFINE_integer("child_out_filters_scale", 1, "")
