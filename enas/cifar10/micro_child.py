@@ -950,7 +950,7 @@ class MicroChild(Model):
             print("-" * 80)
             print("Build valid graph")
             logits = self._model(
-                self.x_valid, False, reuse=True, is_training=False)
+                self.x_valid, is_training=False, reuse=True)
             if self.dataset == "stacking":
                 logits = tf.nn.sigmoid(logits)
                 cast_type = tf.to_float
@@ -988,7 +988,7 @@ class MicroChild(Model):
     def _build_test(self):
         print("-" * 80)
         print("Build test graph")
-        logits = self._model(self.x_test, False, reuse=True, is_training=False)
+        logits = self._model(self.x_test, is_training=False, reuse=True)
         if self.dataset == "stacking":
             logits = tf.nn.sigmoid(logits)
             cast_type = tf.to_float
