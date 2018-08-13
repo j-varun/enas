@@ -63,6 +63,7 @@ def tile_vector_as_image_channels_np(vector_op, image_shape):
       vector_op: A tensor vector to tile.
       image_shape: A list of integers [width, height] with the desired dimensions.
     """
+    # input vector shape
     ivs = np.shape(vector_op)
     # reshape the vector into a single pixel
     vector_pixel_shape = [ivs[0], 1, 1, ivs[1]]
@@ -105,15 +106,27 @@ def concat_unit_meshgrid_np(tensor):
     This is roughly equivalent to the input in uber's coordconv.
     TODO(ahundt) concat_unit_meshgrid_np is untested.
     """
-    y_size = tensor.shape[0]
-    x_size = tensor.shape[1]
+    assert len(tensor.shape) == 4
+    # print('tensor shape: ' + str(tensor.shape))
+    y_size = tensor.shape[1]
+    x_size = tensor.shape[2]
+    max_value = max(x_size, y_size)
     y, x = np.meshgrid(np.arange(y_size),
                        np.arange(x_size),
                        indexing='ij')
-    max_value = np.max(x_size, y_size)
-    y = y / max_value
-    x = x / max_value
-    return np.concatenate([tensor, y, x], axis=-1)
+    assert y.size == x.size and y.size == tensor.shape[1] * tensor.shape[2]
+    # print('x shape: ' + str(x.shape) + ' y shape: ' + str(y.shape))
+    # rescale data and reshape to have the same dimension as the tensor
+    y = np.reshape(y / max_value, [1, y.shape[0], y.shape[1], 1])
+    x = np.reshape(x / max_value, [1, x.shape[0], x.shape[1], 1])
+
+    # need to have a meshgrid for each example in the batch,
+    # so tile along batch axis
+    tile_dimensions = [tensor.shape[0], 1, 1, 1]
+    y = np.tile(y, tile_dimensions)
+    x = np.tile(x, tile_dimensions)
+    combined = np.concatenate([tensor, y, x], axis=-1)
+    return combined
 
 
 def blend_images_np(image, image2, alpha=0.5):
@@ -247,8 +260,12 @@ class CostarBlockStackingSequence(Sequence):
         self.is_training = is_training
         self.verbose = verbose
         self.on_epoch_end()
+        if isinstance(label_features_to_extract, str):
+            label_features_to_extract = [label_features_to_extract]
         self.label_features_to_extract = label_features_to_extract
         # TODO(ahundt) total_actions_available can probably be extracted from the example hdf5 files and doesn't need to be a param
+        if isinstance(data_features_to_extract, str):
+            data_features_to_extract = [data_features_to_extract]
         self.data_features_to_extract = data_features_to_extract
         self.total_actions_available = total_actions_available
         self.random_augmentation = random_augmentation
@@ -416,7 +433,9 @@ class CostarBlockStackingSequence(Sequence):
                         # x = x + tuple([np.array(data['pose'])[indices]])
 
                         if (self.data_features_to_extract is not None and
-                                'image_0_image_n_vec_xyz_aaxyz_nsc_15' in self.data_features_to_extract):
+                                ('image_0_image_n_vec_xyz_aaxyz_nsc_15' in self.data_features_to_extract or
+                                 'image_0_image_n_vec_xyz_nxygrid_12' in self.data_features_to_extract or
+                                 'image_0_image_n_vec_xyz_aaxyz_nsc_nxygrid_17' in self.data_features_to_extract)):
                             # normalized floating point encoding of action vector
                             # from 0 to 1 in a single float which still becomes
                             # a 2d array of dimension batch_size x 1
@@ -510,11 +529,20 @@ class CostarBlockStackingSequence(Sequence):
             else:
                 raise ValueError('Unsupported data input: ' + str(self.data_features_to_extract))
 
-            if (self.data_features_to_extract is not None and 'image_0_image_n_vec_xyz_aaxyz_nsc_15' in self.data_features_to_extract):
+            if (self.data_features_to_extract is not None and
+                    ('image_0_image_n_vec_xyz_10' in self.data_features_to_extract or
+                     'image_0_image_n_vec_xyz_aaxyz_nsc_15' in self.data_features_to_extract or
+                     'image_0_image_n_vec_xyz_nxygrid_12' in self.data_features_to_extract or
+                     'image_0_image_n_vec_xyz_aaxyz_nsc_nxygrid_17' in self.data_features_to_extract)):
                 # make the giant data cube if it is requested
-                X = concat_images_with_tiled_vector_np(X[:2], X[2:])
+                vec = np.squeeze(X[2:])
+                assert len(vec) == 2, "we only support a single input vector for now, if you need more just update the code here"
+                X = concat_images_with_tiled_vector_np(X[:2], vec)
 
-            if (self.data_features_to_extract is not None and [s for s in self.data_features_to_extract if 'xygrid' in s]):
+            # check if any of the data features expect nxygrid normalized x, y coordinate grid values
+            grid_labels = [s for s in self.data_features_to_extract if 'nxygrid' in s]
+            print('grid labels: ' + str(grid_labels))
+            if (self.data_features_to_extract is not None and grid_labels):
                 X = concat_unit_meshgrid_np(X)
 
             # print("type=======",type(X))
@@ -580,7 +608,7 @@ def block_stacking_generator(sequence):
         yield batch
 
 if __name__ == "__main__":
-    visualize = True
+    visualize = False
     output_shape = (224, 224, 3)
     # output_shape = None
     tf.enable_eager_execution()
@@ -590,7 +618,7 @@ if __name__ == "__main__":
         filenames, batch_size=2, verbose=1,
         output_shape=output_shape,
         label_features_to_extract='grasp_goal_xyz_aaxyz_nsc_8',
-        data_features_to_extract='image_0_image_n_vec_xyz_10',
+        data_features_to_extract='image_0_image_n_vec_xyz_nxygrid_12',
         blend_previous_goal_images=True)
     num_batches = len(training_generator)
 
