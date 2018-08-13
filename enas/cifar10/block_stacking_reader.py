@@ -99,6 +99,22 @@ def concat_images_with_tiled_vector_np(images, vector):
     return combined
 
 
+def concat_unit_meshgrid_np(tensor):
+    """ Concat unit meshgrid onto the tensor.
+
+    This is roughly equivalent to the input in uber's coordconv.
+    TODO(ahundt) concat_unit_meshgrid_np is untested.
+    """
+    y_size = tensor.shape[0]
+    x_size = tensor.shape[1]
+    y, x = np.meshgrid(np.arange(y_size),
+                       np.arange(x_size),
+                       indexing='ij')
+    y = y / y_size
+    x = x / x_size
+    return np.concatenate([tensor, y, x], axis=-1)
+
+
 def blend_images_np(image, image2, alpha=0.5):
     """Draws image2 on an image.
     Args:
@@ -184,7 +200,9 @@ class CostarBlockStackingSequence(Sequence):
                  total_actions_available=41,
                  batch_size=32, shuffle=False, seed=0,
                  random_state=None,
-                 is_training=True, random_augmentation=None, output_shape=None,
+                 is_training=True, random_augmentation=None,
+                 random_shift=False,
+                 output_shape=None,
                  blend_previous_goal_images=False,
                  estimated_time_steps_per_example=250, verbose=0):
         '''Initialization
@@ -224,6 +242,7 @@ class CostarBlockStackingSequence(Sequence):
         self.data_features_to_extract = data_features_to_extract
         self.total_actions_available = total_actions_available
         self.random_augmentation = random_augmentation
+        self.random_shift = random_shift
 
         self.blend = blend_previous_goal_images
         self.estimated_time_steps_per_example = estimated_time_steps_per_example
@@ -363,7 +382,7 @@ class CostarBlockStackingSequence(Sequence):
                         rgb_images_resized = []
                         for k, images in enumerate(rgb_images):
                             if (self.is_training and self.random_augmentation is not None and
-                                    np.random.random() > self.random_augmentation):
+                                    self.random_shift and np.random.random() > self.random_augmentation):
                                 # apply random shift to the images before resizing
                                 images = keras_preprocessing.image.random_shift(
                                     images,
@@ -445,7 +464,7 @@ class CostarBlockStackingSequence(Sequence):
 
             # print('poses shape: ' + str(poses.shape))
             encoded_poses = grasp_metrics.batch_encode_xyz_qxyzw_to_xyz_aaxyz_nsc(
-                poses, random_augmentation=self.is_training)
+                poses, random_augmentation=self.random_augmentation)
 
             epsilon = 1e-3
             if np.any(encoded_poses < 0 - epsilon) or np.any(encoded_poses > 1 + epsilon):
@@ -481,7 +500,7 @@ class CostarBlockStackingSequence(Sequence):
 
             if (self.data_features_to_extract is not None and 'image_0_image_n_vec_xyz_aaxyz_nsc_15' in self.data_features_to_extract):
                 # make the giant data cube if it is requested
-                X = concat_images_with_tiled_vector_np(X[:2], np.squeeze(X[2:]))
+                X = concat_images_with_tiled_vector_np(X[:2], X[2:])
 
             # print("type=======",type(X))
             # print("shape=====",X.shape)
@@ -550,7 +569,7 @@ if __name__ == "__main__":
     output_shape = (224, 224, 3)
     # output_shape = None
     tf.enable_eager_execution()
-    filenames = glob.glob(os.path.expanduser('~/JHU/LAB/Projects/costar_task_planning_stacking_dataset_v0.1/*success.h5f'))
+    filenames = glob.glob(os.path.expanduser('~/.keras/datasets/costar_block_stacking_dataset_v0.2/*success.h5f'))
     # print(filenames)
     training_generator = CostarBlockStackingSequence(
         filenames, batch_size=2, verbose=1,
