@@ -135,7 +135,7 @@ class MicroChild(Model):
 
         if self.use_aux_heads:
             if len(self.pool_layers) > 2:
-                pool_index = (len(self.pool_layers) / 2)
+                pool_index = int(len(self.pool_layers) / 2)
                 self.aux_head_indices = [self.pool_layers[pool_index] + 1]
             else:
                 self.aux_head_indices = [self.pool_layers[-1] + 1]
