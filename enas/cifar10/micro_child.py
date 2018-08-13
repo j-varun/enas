@@ -134,7 +134,11 @@ class MicroChild(Model):
                 self.pool_layers += [layer_num]
 
         if self.use_aux_heads:
-            self.aux_head_indices = [self.pool_layers[-1] + 1]
+            if len(self.pool_layers) > 2:
+                pool_index = (len(self.pool_layers) / 2)
+                self.aux_head_indices = [self.pool_layers[pool_index] + 1]
+            else:
+                self.aux_head_indices = [self.pool_layers[-1] + 1]
 
     def _factorized_reduction(self, x, out_filters, stride, is_training):
         """Reduces the shape of x without information loss due to striding."""
