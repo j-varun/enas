@@ -111,20 +111,32 @@ class Model(object):
                 # output_shape = (32, 32, 3)
                 # WARNING: IF YOU ARE EDITING THIS CODE, MAKE SURE TO ALSO CHECK micro_controller.py and micro_child.py WHICH ALSO HAS A GENERATOR
                 if self.translation_only is True:
-                    data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
+                    # We've found evidence (but not concluded finally) in hyperopt
+                    # that input of the rotation component actually
+                    # lowers translation accuracy at least in the colored block case
+                    # switch between the two commented lines to go back to the prvious behavior
+                    # data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
+                    # self.data_features_len = 15
+                    data_features = ['image_0_image_n_vec_xyz_nxygrid_12']
+                    self.data_features_len = 12
                     label_features = ['grasp_goal_xyz_3']
                     self.num_classes = 3
-                    self.data_features_len = 15
                 elif self.rotation_only is True:
-                    data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
+                    # data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
+                    # self.data_features_len = 15
+                    # include a normalized xy grid, similar to uber's coordconv
+                    data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_nxygrid_17']
+                    self.data_features_len = 17
                     label_features = ['grasp_goal_aaxyz_nsc_5']
                     self.num_classes = 5
-                    self.data_features_len = 15
                 else:
-                    data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
+                    # original input block
+                    # data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
+                    # include a normalized xy grid, similar to uber's coordconv
+                    data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_nxygrid_17']
+                    self.data_features_len = 17
                     label_features = ['grasp_goal_xyz_aaxyz_nsc_8']
                     self.num_classes = 8
-                    self.data_features_len = 15
                 training_generator = CostarBlockStackingSequence(
                     train_data, batch_size=batch_size, verbose=0,
                     label_features_to_extract=label_features,
