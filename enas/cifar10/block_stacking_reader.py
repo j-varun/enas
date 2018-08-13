@@ -536,7 +536,7 @@ class CostarBlockStackingSequence(Sequence):
                      'image_0_image_n_vec_xyz_aaxyz_nsc_nxygrid_17' in self.data_features_to_extract)):
                 # make the giant data cube if it is requested
                 vec = np.squeeze(X[2:])
-                assert len(vec) == 2, "we only support a single input vector for now, if you need more just update the code here"
+                assert len(vec.shape) == 2, 'we only support a 2D input vector for now but found shape:' + str(vec.shape)
                 X = concat_images_with_tiled_vector_np(X[:2], vec)
 
             # check if any of the data features expect nxygrid normalized x, y coordinate grid values
@@ -618,7 +618,7 @@ if __name__ == "__main__":
         filenames, batch_size=2, verbose=1,
         output_shape=output_shape,
         label_features_to_extract='grasp_goal_xyz_aaxyz_nsc_8',
-        data_features_to_extract='image_0_image_n_vec_xyz_nxygrid_12',
+        data_features_to_extract=['image_0_image_n_vec_xyz_nxygrid_12'],
         blend_previous_goal_images=True)
     num_batches = len(training_generator)
 
