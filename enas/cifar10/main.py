@@ -163,6 +163,7 @@ def get_ops(images, labels):
         translation_only=FLAGS.translation_only,
         rotation_only=FLAGS.rotation_only,
         dataset=FLAGS.dataset,
+        pool_distance=FLAGS.child_pool_distance
     )
     if FLAGS.child_fixed_arc is None:
         controller_model = ControllerClass(
