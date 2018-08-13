@@ -209,7 +209,7 @@ class Model(object):
                     shuffle=True)
                 validation_enqueuer.start(workers=10, max_queue_size=100)
 
-                def validation_generator(): return iter(train_enqueuer.get())
+                def validation_generator(): return iter(validation_enqueuer.get())
                 validation_dataset = Dataset.from_generator(validation_generator, (tf.float32, tf.float32), (tf.TensorShape(
                     [None, self.image_shape[0], self.image_shape[1], self.data_features_len]), tf.TensorShape([None, None])))
                 self.num_valid_examples = len(
@@ -254,7 +254,7 @@ class Model(object):
                     shuffle=True)
                 test_enqueuer.start(workers=10, max_queue_size=100)
 
-                def test_generator(): return iter(train_enqueuer.get())
+                def test_generator(): return iter(test_enqueuer.get())
                 test_dataset = Dataset.from_generator(test_generator, (tf.float32, tf.float32), (tf.TensorShape(
                     [None, self.image_shape[0], self.image_shape[1], self.data_features_len]), tf.TensorShape([None, None])))
                 self.num_test_examples = len(
