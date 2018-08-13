@@ -541,7 +541,7 @@ class CostarBlockStackingSequence(Sequence):
 
             # check if any of the data features expect nxygrid normalized x, y coordinate grid values
             grid_labels = [s for s in self.data_features_to_extract if 'nxygrid' in s]
-            print('grid labels: ' + str(grid_labels))
+            # print('grid labels: ' + str(grid_labels))
             if (self.data_features_to_extract is not None and grid_labels):
                 X = concat_unit_meshgrid_np(X)
 
