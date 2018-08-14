@@ -385,8 +385,10 @@ class CostarBlockStackingSequence(Sequence):
                         # indices = [0]
                         # len of goal indexes is the same as the number of images, so this saves loading all the images
                         all_goal_ids = np.array(data['gripper_action_goal_idx'])
-                        if all_goal_ids[-1] > len(all_goal_ids):
-                            raise ValueError(' File contains goal id greater than total number of frames ' + str(example_filename))
+                        if('stacking_reward' in self.label_features_to_extract):
+                            # TODO(ahundt) move this check out of the stacking reward case after files have been updated
+                            if all_goal_ids[-1] > len(all_goal_ids):
+                                raise ValueError(' File contains goal id greater than total number of frames ' + str(example_filename))
                         if len(all_goal_ids) == 0:
                             print('block_stacking_reader.py: no goal indices in this file, skipping: ' + example_filename)
                         if 'success' in example_filename:
@@ -444,7 +446,7 @@ class CostarBlockStackingSequence(Sequence):
                         if(self.data_features_to_extract is not None and 'image_0_image_n_vec_0_vec_n_xyz_aaxyz_nsc_nxygrid_25' in self.data_features_to_extract):
                             next_goal_idx = all_goal_ids[indices[1:][0]]
                             goal_pose.append(np.array(data['pose'][next_goal_idx]))
-                            print("final pose added",goal_pose)
+                            print("final pose added", goal_pose)
                             current_stacking_reward = stacking_reward[indices[1]]
                             print("reward estimate", current_stacking_reward)
                         # x = x + tuple([rgb_images[indices]])
