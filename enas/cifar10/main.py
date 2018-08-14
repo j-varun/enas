@@ -51,7 +51,7 @@ DEFINE_integer("width_img", 32, "")
 DEFINE_boolean("regression", False, "Task is regression or classification")
 DEFINE_boolean("translation_only", False, "Translation only case")
 DEFINE_boolean("rotation_only", False, "Rotation only case")
-DEFINE_boolean("use_reward_estimates", False, "Reward estimate case")
+DEFINE_boolean("reward_critic", False, "Train a block stacking critic which estimates the reward of a proposed action based on the current state and command.")
 DEFINE_integer("max_loss", 0, "To set positive reward; for stacking dataset only")
 
 DEFINE_integer("num_epochs", 300, "")
@@ -163,7 +163,7 @@ def get_ops(images, labels):
         image_shape=(FLAGS.height_img, FLAGS.width_img, 3),
         translation_only=FLAGS.translation_only,
         rotation_only=FLAGS.rotation_only,
-        reward_estimate=FLAGS.use_reward_estimates,
+        reward_estimate=FLAGS.reward_critic,
         dataset=FLAGS.dataset,
         pool_distance=FLAGS.child_pool_distance
     )
