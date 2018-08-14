@@ -359,6 +359,7 @@ class CostarBlockStackingSequence(Sequence):
             init_images = []
             current_images = []
             poses = []
+            goal_pose = []
             y = []
             action_labels = []
             action_successes = []
@@ -384,8 +385,19 @@ class CostarBlockStackingSequence(Sequence):
                         # indices = [0]
                         # len of goal indexes is the same as the number of images, so this saves loading all the images
                         all_goal_ids = np.array(data['gripper_action_goal_idx'])
+                        if all_goal_ids[-1] > len(all_goal_ids):
+                            raise ValueError(' File contains goal id greater than total number of frames ' + str(example_filename))
                         if len(all_goal_ids) == 0:
                             print('block_stacking_reader.py: no goal indices in this file, skipping: ' + example_filename)
+                        if 'success' in example_filename:
+                            label_constant = 1
+                        else:
+                            label_constal = 0
+                        reward_estimate = np.arange(len(all_goal_ids))
+                        reward_estimate = 0.999 * reward_estimate * label_constant
+                        # print("reward estimates", reward_estimate)
+
+
                         if self.seed is not None:
                             image_indices = self.random_state.randint(1, len(all_goal_ids)-1, 1)
                         else:
@@ -429,13 +441,20 @@ class CostarBlockStackingSequence(Sequence):
                         init_images.append(rgb_images_resized[0])
                         current_images.append(rgb_images_resized[1])
                         poses.append(np.array(data['pose'][indices[1:]])[0])
+                        if(self.data_features_to_extract is not None and 'image_0_image_n_vec_0_vec_n_xyz_aaxyz_nsc_nxygrid_25' in self.data_features_to_extract):
+                            next_goal_idx = all_goal_ids[indices[1:][0]]
+                            goal_pose.append(np.array(data['pose'][next_goal_idx]))
+                            print("final pose added",goal_pose)
+                            current_reward_estimate = reward_estimate[indices[1]]
+                            print("reward estimate", current_reward_estimate)
                         # x = x + tuple([rgb_images[indices]])
                         # x = x + tuple([np.array(data['pose'])[indices]])
 
                         if (self.data_features_to_extract is not None and
                                 ('image_0_image_n_vec_xyz_aaxyz_nsc_15' in self.data_features_to_extract or
                                  'image_0_image_n_vec_xyz_nxygrid_12' in self.data_features_to_extract or
-                                 'image_0_image_n_vec_xyz_aaxyz_nsc_nxygrid_17' in self.data_features_to_extract)):
+                                 'image_0_image_n_vec_xyz_aaxyz_nsc_nxygrid_17' in self.data_features_to_extract or
+                                 'image_0_image_n_vec_0_vec_n_xyz_aaxyz_nsc_nxygrid_25' in self.data_features_to_extract)):
                             # normalized floating point encoding of action vector
                             # from 0 to 1 in a single float which still becomes
                             # a 2d array of dimension batch_size x 1
@@ -473,11 +492,16 @@ class CostarBlockStackingSequence(Sequence):
                         #     print(np.array(json_data['gripper_center']))
                             # print(json_data.keys())
                             # y.append(np.array(json_data['camera_rgb_frame']))
-                        y.append(label)
+                        if('reward_estimate' in self.label_features_to_extract):
+                            # print(y)
+                            y.append(current_reward_estimate)
+                        else:
+                            y.append(label)
                         if 'success' in example_filename:
                             action_successes = action_successes + [1]
                         else:
                             action_successes = action_successes + [0]
+                        # print("y = ", y)
                 except IOError as ex:
                     print('Error: Skipping file due to IO error when opening ' +
                           example_filename + ': ' + str(ex) + ' using the last example twice for batch')
@@ -494,6 +518,10 @@ class CostarBlockStackingSequence(Sequence):
             # print('poses shape: ' + str(poses.shape))
             encoded_poses = grasp_metrics.batch_encode_xyz_qxyzw_to_xyz_aaxyz_nsc(
                 poses, random_augmentation=self.random_augmentation)
+            if self.data_features_to_extract is None or 'image_0_image_n_vec_0_vec_n_xyz_aaxyz_nsc_nxygrid_25':
+                encoded_goal_pose = grasp_metrics.batch_encode_xyz_qxyzw_to_xyz_aaxyz_nsc(
+                    poses, random_augmentation=self.random_augmentation)
+                # encoded_poses = np.array([encoded_poses, encoded_goal_pose])
 
             epsilon = 1e-3
             if np.any(encoded_poses < 0 - epsilon) or np.any(encoded_poses > 1 + epsilon):
@@ -521,6 +549,9 @@ class CostarBlockStackingSequence(Sequence):
                 # default, regression input case for translation and rotation
                 action_poses_vec = np.concatenate([encoded_poses, action_labels], axis=-1)
                 X = [init_images, current_images, action_poses_vec]
+            elif(self.data_features_to_extract is None or 'image_0_image_n_vec_0_vec_n_xyz_aaxyz_nsc_nxygrid_25' in self.data_features_to_extract):
+                action_poses_vec = np.concatenate([encoded_poses, encoded_goal_pose, action_labels], axis=-1)
+                X = [init_images, current_images, action_poses_vec]
             elif 'proposed_goal_xyz_aaxyz_nsc_8' in self.data_features_to_extract:
                 # classification input case
                 proposed_and_current_action_vec = np.concatenate([encoded_poses, action_labels, y], axis=-1)
@@ -533,7 +564,8 @@ class CostarBlockStackingSequence(Sequence):
                     ('image_0_image_n_vec_xyz_10' in self.data_features_to_extract or
                      'image_0_image_n_vec_xyz_aaxyz_nsc_15' in self.data_features_to_extract or
                      'image_0_image_n_vec_xyz_nxygrid_12' in self.data_features_to_extract or
-                     'image_0_image_n_vec_xyz_aaxyz_nsc_nxygrid_17' in self.data_features_to_extract)):
+                     'image_0_image_n_vec_xyz_aaxyz_nsc_nxygrid_17' in self.data_features_to_extract or
+                     'image_0_image_n_vec_0_vec_n_xyz_aaxyz_nsc_nxygrid_25' in self.data_features_to_extract)):
                 # make the giant data cube if it is requested
                 vec = np.squeeze(X[2:])
                 assert len(vec.shape) == 2, 'we only support a 2D input vector for now but found shape:' + str(vec.shape)
@@ -563,6 +595,8 @@ class CostarBlockStackingSequence(Sequence):
             elif 'grasp_success' in self.label_features_to_extract or 'action_success' in self.label_features_to_extract:
                 # classification label case
                 y = action_successes
+            elif 'reward_estimate' in self.label_features_to_extract:
+                y = current_reward_estimate
             else:
                 raise ValueError('Unsupported label: ' + str(action_labels))
 
@@ -617,9 +651,9 @@ if __name__ == "__main__":
     training_generator = CostarBlockStackingSequence(
         filenames, batch_size=2, verbose=1,
         output_shape=output_shape,
-        label_features_to_extract='grasp_goal_xyz_aaxyz_nsc_8',
-        data_features_to_extract=['image_0_image_n_vec_xyz_nxygrid_12'],
-        blend_previous_goal_images=True)
+        label_features_to_extract='reward_estimate',
+        data_features_to_extract=['image_0_image_n_vec_0_vec_n_xyz_aaxyz_nsc_nxygrid_25'],
+        blend_previous_goal_images=False)
     num_batches = len(training_generator)
 
     bsg = block_stacking_generator(training_generator)
@@ -655,8 +689,8 @@ if __name__ == "__main__":
     generator_ouput = next(generator)
     print("-------------------op")
     x, y = generator_ouput
-    # print(x.shape)
-    # print(y.shape)
+    print("x-shape-----------", x.shape)
+    print("y-shape---------",y.shape)
 
     # X,y=training_generator.__getitem__(1)
     #print(X.keys())

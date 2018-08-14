@@ -857,6 +857,7 @@ class MicroChild(Model):
             eval_set, float(total_mse) / num_batches))
         print("{}_mae: {:<6.4f}".format(
             eval_set, float(total_mae) / num_batches))
+        print(eval_set, end=" ")
         print(np.reshape(self.normal_arc, [-1]))
         print(np.reshape(self.reduce_arc, [-1]))
 
