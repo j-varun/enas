@@ -343,7 +343,7 @@ def train():
                                 controller_ops["valid_acc"],
                                 controller_ops["baseline"],
                                 controller_ops["reward"],
-                                controller_ops["mse"]
+                                controller_ops["mse"],
                                 controller_ops["cart_error"],
                                 controller_ops["angle_error"],
                                 controller_ops["mae"],
