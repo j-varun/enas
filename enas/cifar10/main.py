@@ -343,13 +343,14 @@ def train():
                                 controller_ops["valid_acc"],
                                 controller_ops["baseline"],
                                 controller_ops["reward"],
+                                controller_ops["mse"]
                                 controller_ops["cart_error"],
                                 controller_ops["angle_error"],
                                 controller_ops["mae"],
                                 controller_ops["skip_rate"],
                                 controller_ops["train_op"],
                             ]
-                            loss, entropy, lr, gn, val_acc, bl, reward, cart_error, angle_error, mae, skip, _ = sess.run(
+                            loss, entropy, lr, gn, val_acc, bl, reward, c_mse, cart_error, angle_error, mae, skip, _ = sess.run(
                                 run_ops)
                             controller_step = sess.run(
                                 controller_ops["train_step"])
@@ -368,7 +369,7 @@ def train():
                                 log_string += " mins={:<.2f}".format(
                                     float(curr_time - start_time) / 60)
                                 log_string += " rw ={}".format(reward)
-                                log_string += " mse ={}".format(FLAGS.max_loss-reward)
+                                log_string += " mse ={}".format(c_mse)
                                 if FLAGS.dataset == "stacking":
                                     if FLAGS.rotation_only is False:
                                         log_string += "\ncart_error={}".format(cart_error)

@@ -254,8 +254,8 @@ class MicroController(Controller):
         self.valid_acc = (tf.to_float(child_model.valid_shuffle_acc) /
                           tf.to_float(child_model.batch_size))
         if self.dataset == "stacking":
-            self.reward = self.max_loss-child_model.valid_loss
-            self.mse = child_model.valid_loss
+            self.reward = self.max_loss-child_model.valid_shuffle_loss
+            self.mse = child_model.valid_shuffle_loss
             self.mae = child_model.valid_shuffle_mae
             self.angle_error = child_model.valid_shuffle_angle_error
             self.cart_error = child_model.valid_shuffle_cart_error
