@@ -254,7 +254,13 @@ class MicroController(Controller):
         self.valid_acc = (tf.to_float(child_model.valid_shuffle_acc) /
                           tf.to_float(child_model.batch_size))
         if self.dataset == "stacking":
-            self.reward = self.max_loss-child_model.valid_shuffle_loss
+            # rewards like mse should grow fast as the distance from 0 shrinks,
+            # since the possible improvement gets smaller as you get closer to the exact goal pose
+            # use epsilon to avoid dividing by 0
+            epsilon = 1e-12
+            self.reward = 1 / tf.maximum(tf.abs(child_model.valid_shuffle_loss), epsilon)
+            # previous reward which sort of worked:
+            # self.reward = self.max_loss-child_model.valid_shuffle_loss
             self.mse = child_model.valid_shuffle_loss
             self.mae = child_model.valid_shuffle_mae
             self.angle_error = child_model.valid_shuffle_angle_error
