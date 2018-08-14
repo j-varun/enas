@@ -163,7 +163,7 @@ def get_ops(images, labels):
         image_shape=(FLAGS.height_img, FLAGS.width_img, 3),
         translation_only=FLAGS.translation_only,
         rotation_only=FLAGS.rotation_only,
-        reward_estimate=FLAGS.reward_critic,
+        stacking_reward=FLAGS.reward_critic,
         dataset=FLAGS.dataset,
         pool_distance=FLAGS.child_pool_distance
     )
@@ -322,9 +322,9 @@ def train():
                     log_string += " mins={:<10.2f}".format(
                         float(curr_time - start_time) / 60)
                     if FLAGS.dataset == "stacking":
-                        if FLAGS.translation_only is False and FLAGS.reward_estimate is False:
+                        if FLAGS.translation_only is False and FLAGS.stacking_reward is False:
                             log_string += "\ntr_ang_error={}".format(tr_angle_error)
-                        if FLAGS.rotation_only is False and FLAGS.reward_estimate is False:
+                        if FLAGS.rotation_only is False and FLAGS.stacking_reward is False:
                             log_string += " tr_cart_error={}".format(tr_cart_error)
                         log_string += " tr_mae={}".format(tr_mae)
                         log_string += "\ntr_preds={}".format(tr_preds)
@@ -373,9 +373,9 @@ def train():
                                 log_string += " rw ={}".format(reward)
                                 log_string += " mse ={}".format(c_mse)
                                 if FLAGS.dataset == "stacking":
-                                    if FLAGS.rotation_only is False and FLAGS.reward_estimate is False:
+                                    if FLAGS.rotation_only is False and FLAGS.stacking_reward is False:
                                         log_string += "\ncart_error={}".format(cart_error)
-                                    if FLAGS.translation_only is False and FLAGS.reward_estimate is False:
+                                    if FLAGS.translation_only is False and FLAGS.stacking_reward is False:
                                         log_string += "\nangle_error={}".format(angle_error)
                                     log_string += "\nmae={}".format(mae)
                                 # log_string += "\n g_emb = {}".format(g_emb)
@@ -409,9 +409,9 @@ def train():
                             print("controller_loss={}".format(c_loss))
                             if FLAGS.dataset == "stacking":
                                 print("mse={}".format(mse))
-                                if FLAGS.rotation_only is False and FLAGS.reward_estimate is False:
+                                if FLAGS.rotation_only is False and FLAGS.stacking_reward is False:
                                     print("cart_error={}".format(selected_cart_error))
-                                if FLAGS.translation_only is False and FLAGS.reward_estimate is False:
+                                if FLAGS.translation_only is False and FLAGS.stacking_reward is False:
                                     print("angle_error={}".format(selected_angle_error))
                                 print("mae={}".format(selected_mae))
                             print("-" * 80)

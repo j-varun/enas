@@ -393,9 +393,9 @@ class CostarBlockStackingSequence(Sequence):
                             label_constant = 1
                         else:
                             label_constal = 0
-                        reward_estimate = np.arange(len(all_goal_ids))
-                        reward_estimate = 0.999 * reward_estimate * label_constant
-                        # print("reward estimates", reward_estimate)
+                        stacking_reward = np.arange(len(all_goal_ids))
+                        stacking_reward = 0.999 * stacking_reward * label_constant
+                        # print("reward estimates", stacking_reward)
 
 
                         if self.seed is not None:
@@ -445,8 +445,8 @@ class CostarBlockStackingSequence(Sequence):
                             next_goal_idx = all_goal_ids[indices[1:][0]]
                             goal_pose.append(np.array(data['pose'][next_goal_idx]))
                             print("final pose added",goal_pose)
-                            current_reward_estimate = reward_estimate[indices[1]]
-                            print("reward estimate", current_reward_estimate)
+                            current_stacking_reward = stacking_reward[indices[1]]
+                            print("reward estimate", current_stacking_reward)
                         # x = x + tuple([rgb_images[indices]])
                         # x = x + tuple([np.array(data['pose'])[indices]])
 
@@ -492,9 +492,9 @@ class CostarBlockStackingSequence(Sequence):
                         #     print(np.array(json_data['gripper_center']))
                             # print(json_data.keys())
                             # y.append(np.array(json_data['camera_rgb_frame']))
-                        if('reward_estimate' in self.label_features_to_extract):
+                        if('stacking_reward' in self.label_features_to_extract):
                             # print(y)
-                            y.append(current_reward_estimate)
+                            y.append(current_stacking_reward)
                         else:
                             y.append(label)
                         if 'success' in example_filename:
@@ -595,8 +595,8 @@ class CostarBlockStackingSequence(Sequence):
             elif 'grasp_success' in self.label_features_to_extract or 'action_success' in self.label_features_to_extract:
                 # classification label case
                 y = action_successes
-            elif 'reward_estimate' in self.label_features_to_extract:
-                y = current_reward_estimate
+            elif 'stacking_reward' in self.label_features_to_extract:
+                y = current_stacking_reward
             else:
                 raise ValueError('Unsupported label: ' + str(action_labels))
 
@@ -651,7 +651,7 @@ if __name__ == "__main__":
     training_generator = CostarBlockStackingSequence(
         filenames, batch_size=2, verbose=1,
         output_shape=output_shape,
-        label_features_to_extract='reward_estimate',
+        label_features_to_extract='stacking_reward',
         data_features_to_extract=['image_0_image_n_vec_0_vec_n_xyz_aaxyz_nsc_nxygrid_25'],
         blend_previous_goal_images=False)
     num_batches = len(training_generator)

@@ -45,7 +45,7 @@ class Model(object):
                  image_shape=(32, 32, 3),
                  translation_only=False,
                  rotation_only=False,
-                 reward_estimate=False,
+                 stacking_reward=False,
                  dataset="cifar",
                  ):
         """
@@ -78,7 +78,7 @@ class Model(object):
         self.image_shape = image_shape
         self.rotation_only = rotation_only
         self.translation_only = translation_only
-        self.reward_estimate = reward_estimate
+        self.stacking_reward = stacking_reward
 
         self.global_step = None
         self.valid_acc = None
@@ -131,10 +131,10 @@ class Model(object):
                     self.data_features_len = 17
                     label_features = ['grasp_goal_aaxyz_nsc_5']
                     self.num_classes = 5
-                elif self.reward_estimate is True:
+                elif self.stacking_reward is True:
                     data_features = ['image_0_image_n_vec_0_vec_n_xyz_aaxyz_nsc_nxygrid_25']
                     self.data_features_len = 25
-                    label_features = ['reward_estimate']
+                    label_features = ['stacking_reward']
                     self.num_classes = 1
                 else:
                     # original input block
