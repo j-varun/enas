@@ -62,6 +62,7 @@ class MicroChild(Model):
                  image_shape=(32, 32, 3),
                  translation_only=False,
                  rotation_only=False,
+                 reward_estimate=False,
                  dataset="cifar",
                  pool_distance=2,
                  **kwargs
@@ -90,6 +91,7 @@ class MicroChild(Model):
             image_shape=image_shape,
             translation_only=translation_only,
             rotation_only=rotation_only,
+            reward_estimate=reward_estimate,
             dataset=dataset)
 
         if self.data_format == "NHWC":
@@ -115,6 +117,7 @@ class MicroChild(Model):
         self.fixed_arc = fixed_arc
         self.translation_only = translation_only
         self.rotation_only = rotation_only
+        self.reward_estimate = reward_estimate
         self.verbose = 0
 
         self.global_step = tf.Variable(
@@ -847,10 +850,10 @@ class MicroChild(Model):
             print("")
         print("{}_accuracy: {:<6.4f}".format(
             eval_set, float(total_acc) / total_exp))
-        if self.rotation_only is False:
+        if self.rotation_only is False and self.reward_estimate is False:
             print("{}_cart_error: {:<6.4f}".format(
                 eval_set, float(total_cart_error) / num_batches))
-        if self.translation_only is False:
+        if self.translation_only is False and self.reward_estimate is False:
             print("{}_angle_error: {:<6.4f}".format(
                 eval_set, float(total_angle_error) / num_batches))
         print("{}_mse: {:<6.4f}".format(
@@ -906,11 +909,11 @@ class MicroChild(Model):
             self.train_acc = tf.reduce_mean(self.train_acc)
             self.train_cart_error = grasp_metrics.cart_error(
                 self.y_train, self.train_preds)
-            if self.rotation_only is True:
+            if self.rotation_only is True or self.reward_estimate is True:
                 self.train_cart_error = tf.zeros([1])
             else:
                 self.train_cart_error = tf.reduce_mean(self.train_cart_error)
-            if self.translation_only is True:
+            if self.translation_only is True or self.reward_estimate is True:
                 self.train_angle_error = tf.zeros([1])
             else:
                 self.train_angle_error = grasp_metrics.angle_error(
@@ -978,11 +981,11 @@ class MicroChild(Model):
                     labels=self.y_valid, predictions=self.valid_preds))
                 self.valid_cart_error = grasp_metrics.cart_error(
                   self.y_valid, self.valid_preds)
-                if self.rotation_only is True:
+                if self.rotation_only is True or self.reward_estimate is True:
                     self.valid_cart_error = tf.zeros([1])
                 else:
                     self.valid_cart_error = tf.reduce_mean(self.valid_cart_error)
-                if self.translation_only is True:
+                if self.translation_only is True or self.reward_estimate is True:
                     self.valid_angle_error = tf.zeros([1])
                 else:
                     self.valid_angle_error = grasp_metrics.angle_error(
@@ -1014,11 +1017,11 @@ class MicroChild(Model):
             self.test_acc = tf.reduce_sum(self.test_acc)
             self.test_cart_error = grasp_metrics.cart_error(
                 self.y_test, self.test_preds)
-            if self.rotation_only is True:
+            if self.rotation_only is True or self.reward_estimate is True:
                 self.test_cart_error = tf.zeros([1])
             else:
                 self.test_cart_error = tf.reduce_mean(self.test_cart_error)
-            if self.translation_only is True:
+            if self.translation_only is True or self.reward_estimate is True:
                 self.test_angle_error = tf.zeros([1])
             else:
                 self.test_angle_error = grasp_metrics.angle_error(
@@ -1111,11 +1114,11 @@ class MicroChild(Model):
                     labels=self.y_valid_shuffle, predictions=self.valid_shuffle_preds))
             self.valid_shuffle_cart_error = grasp_metrics.cart_error(
                 self.y_valid_shuffle, self.valid_shuffle_preds)
-            if self.rotation_only is True:
+            if self.rotation_only is True or self.reward_estimate is True:
                 self.valid_shuffle_cart_error = tf.zeros([1])
             else:
                 self.valid_shuffle_cart_error = tf.reduce_mean(self.valid_shuffle_cart_error)
-            if self.translation_only is True:
+            if self.translation_only is True or self.reward_estimate is True:
                 self.valid_shuffle_angle_error = tf.zeros([1])
             else:
                 self.valid_shuffle_angle_error = grasp_metrics.angle_error(
