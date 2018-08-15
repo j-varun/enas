@@ -124,11 +124,12 @@ class Model(object):
                     label_features = ['grasp_goal_xyz_3']
                     self.num_classes = 3
                 elif self.rotation_only is True:
-                    # data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
-                    # self.data_features_len = 15
+                    data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
+                    self.data_features_len = 15
+                    # disabled 2 lines below below because best run 2018_12_2054 was with settings above
                     # include a normalized xy grid, similar to uber's coordconv
-                    data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_nxygrid_17']
-                    self.data_features_len = 17
+                    # data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_nxygrid_17']
+                    # self.data_features_len = 17
                     label_features = ['grasp_goal_aaxyz_nsc_5']
                     self.num_classes = 5
                 elif self.stacking_reward is True:
