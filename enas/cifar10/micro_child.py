@@ -805,7 +805,7 @@ class MicroChild(Model):
 
         assert self.global_step is not None
         global_step = sess.run(self.global_step)
-        print("Eval at {}".format(global_step))
+        print("Eval {} set at {}".format(eval_set, global_step))
 
         if eval_set == "valid":
             assert self.x_valid is not None
@@ -835,8 +835,11 @@ class MicroChild(Model):
         total_mse = 0
         total_exp = 0
         total_angle_error = 0
+        normal_arc = []
+        reduce_arc = []
         for batch_id in range(num_batches):
-            acc, cart_error, angle_error, mse, mae = sess.run([acc_op, cart_op, ang_er_op, mse_op, mae_op], feed_dict=feed_dict)
+            acc, cart_error, angle_error, mse, mae, normal_arc, reduce_arc = sess.run(
+                [acc_op, cart_op, ang_er_op, mse_op, mae_op, self.normal_arc, self.reduce_arc], feed_dict=feed_dict)
             total_acc += acc
             total_cart_error += cart_error
             total_angle_error += angle_error
@@ -861,8 +864,9 @@ class MicroChild(Model):
         print("{}_mae: {:<6.4f}".format(
             eval_set, float(total_mae) / num_batches))
         print(eval_set, end=" ")
-        print(np.reshape(self.normal_arc, [-1]))
-        print(np.reshape(self.reduce_arc, [-1]))
+        print('Eval Architecture:')
+        print(np.reshape(normal_arc, [-1]))
+        print(np.reshape(reduce_arc, [-1]))
 
     # override
     def _build_train(self):
