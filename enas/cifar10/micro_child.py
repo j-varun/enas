@@ -1140,11 +1140,12 @@ class MicroChild(Model):
             self.valid_shuffle_acc = cast_type(self.valid_shuffle_acc)
             self.valid_shuffle_acc = tf.reduce_sum(self.valid_shuffle_acc)
 
-    def connect_controller(self, controller_model):
+    def connect_controller(self, controller_model, verbose=0):
         if self.fixed_arc is None:
             sample_arc = controller_model.sample_arc
             normal_arc, reduce_arc = sample_arc
-            normal_arc = tf.Print(normal_arc, [normal_arc, reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
+            if verbose:
+                normal_arc = tf.Print(normal_arc, [normal_arc, reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
             self.normal_arc = normal_arc
             self.reduce_arc = reduce_arc
         else:
