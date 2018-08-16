@@ -150,7 +150,7 @@ class Model(object):
                 training_generator = CostarBlockStackingSequence(
                     train_data, batch_size=batch_size, verbose=0,
                     label_features_to_extract=label_features,
-                    data_features_to_extract=data_features, output_shape=self.image_shape, shuffle=True
+                    data_features_to_extract=data_features, output_shape=self.image_shape, shuffle=True,
                     random_augmentation=self.random_augmentation)
 
                 train_enqueuer = OrderedEnqueuer(
