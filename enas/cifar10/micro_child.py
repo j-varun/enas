@@ -1144,7 +1144,7 @@ class MicroChild(Model):
         if self.fixed_arc is None:
             sample_arc = controller_model.sample_arc
             normal_arc, reduce_arc = sample_arc
-            tf.Print(normal_arc, [normal_arc, reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
+            normal_arc = tf.Print(normal_arc, [normal_arc, reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
             self.normal_arc = normal_arc
             self.reduce_arc = reduce_arc
         else:
