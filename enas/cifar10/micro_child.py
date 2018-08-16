@@ -839,7 +839,7 @@ class MicroChild(Model):
         reduce_arc = []
         for batch_id in range(num_batches):
             acc, cart_error, angle_error, mse, mae, normal_arc, reduce_arc = sess.run(
-                [acc_op, cart_op, ang_er_op, mse_op, mae_op, self.normal_arc, self.reduce_arc], feed_dict=feed_dict)
+                [acc_op, cart_op, ang_er_op, mse_op, mae_op, tf.convert_to_tensor(self.normal_arc), tf.convert_to_tensor(self.reduce_arc)], feed_dict=feed_dict)
             total_acc += acc
             total_cart_error += cart_error
             total_angle_error += angle_error
