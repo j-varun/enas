@@ -172,7 +172,8 @@ def get_ops(images, labels):
         rotation_only=FLAGS.rotation_only,
         stacking_reward=FLAGS.stacking_reward,
         dataset=FLAGS.dataset,
-        pool_distance=FLAGS.child_pool_distance
+        pool_distance=FLAGS.child_pool_distance,
+        random_augmentation=FLAGS.random_augmentation
     )
     if FLAGS.child_fixed_arc is None:
         controller_model = ControllerClass(
