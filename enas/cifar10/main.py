@@ -110,6 +110,13 @@ DEFINE_string("controller_optimizer", "adam", "Optimization algorithm, one of sg
 DEFINE_integer("log_every", 50, "How many steps to log")
 DEFINE_integer("eval_every_epochs", 1, "How many epochs to eval")
 
+flags.DEFINE_float(
+    'random_augmentation',
+    None,
+    'Frequency from 0.0 to 1.0 with which random augmentation is performed. '
+    'Disabled by default and currently for block stacking dataset only.'
+)
+
 
 def get_ops(images, labels):
     """

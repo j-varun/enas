@@ -47,6 +47,7 @@ class Model(object):
                  rotation_only=False,
                  stacking_reward=False,
                  dataset="cifar",
+                 random_augmentation=None
                  ):
         """
         Args:
@@ -79,6 +80,7 @@ class Model(object):
         self.rotation_only = rotation_only
         self.translation_only = translation_only
         self.stacking_reward = stacking_reward
+        self.random_augmentation = random_augmentation
 
         self.global_step = None
         self.valid_acc = None
@@ -148,7 +150,8 @@ class Model(object):
                 training_generator = CostarBlockStackingSequence(
                     train_data, batch_size=batch_size, verbose=0,
                     label_features_to_extract=label_features,
-                    data_features_to_extract=data_features, output_shape=self.image_shape, shuffle=True)
+                    data_features_to_extract=data_features, output_shape=self.image_shape, shuffle=True
+                    random_augmentation=self.random_augmentation)
 
                 train_enqueuer = OrderedEnqueuer(
                     training_generator,
