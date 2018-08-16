@@ -973,7 +973,7 @@ class MicroChild(Model):
             print("-" * 80)
             print("Build valid graph")
             logits = self._model(
-                self.x_valid, is_training=False, reuse=True)
+                self.x_valid, is_training=True, reuse=True)
             if self.dataset == "stacking":
                 logits = tf.nn.sigmoid(logits)
                 cast_type = tf.to_float
@@ -1142,7 +1142,11 @@ class MicroChild(Model):
 
     def connect_controller(self, controller_model):
         if self.fixed_arc is None:
-            self.normal_arc, self.reduce_arc = controller_model.sample_arc
+            sample_arc = controller_model.sample_arc
+            normal_arc, reduce_arc = sample_arc
+            tf.Print(normal_arc, [normal_arc, reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
+            self.normal_arc = normal_arc
+            self.reduce_arc = reduce_arc
         else:
             fixed_arc = np.array([int(x)
                                   for x in self.fixed_arc.split(" ") if x])
