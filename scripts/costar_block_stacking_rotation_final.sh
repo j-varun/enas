@@ -7,7 +7,7 @@ fixed_arc="0 1 1 0 1 4 0 0"
 fixed_arc="$fixed_arc 0 1 1 2 0 0 0 2"
 
 python enas/cifar10/main.py \
-  --data_format="NCHW" \
+  --data_format="NHWC" \
   --search_for="micro" \
   --reset_output_dir \
   --data_path="data/cifar10" \
