@@ -154,7 +154,7 @@ class MicroChild(Model):
                 w = create_weight("w", [1, 1, inp_c, out_filters])
                 x = tf.nn.conv2d(x, w, [1, 1, 1, 1], "SAME",
                                  data_format=self.data_format)
-                x = norm(x, is_training=is_training, data_format=self.data_format)
+                x = norm(x, is_training=is_training, data_format=self.data_format, norm_type="batch")
                 return x
 
         stride_spec = self._get_strides(stride)
@@ -192,7 +192,7 @@ class MicroChild(Model):
         # Concat and apply BN
         final_path = tf.concat(values=[path1, path2], axis=concat_axis)
         final_path = norm(final_path, is_training=is_training,
-                          data_format=self.data_format)
+                          data_format=self.data_format, norm_type="batch")
 
         return final_path
 
@@ -267,7 +267,7 @@ class MicroChild(Model):
                     x = tf.nn.conv2d(x, w, [1, 1, 1, 1], "SAME",
                                      data_format=self.data_format)
                     x = norm(
-                        x, is_training=is_training, data_format=self.data_format)
+                        x, is_training=is_training, data_format=self.data_format, norm_type="batch")
 
             y = layers[1]
             if c[1] != out_filters:
@@ -358,7 +358,7 @@ class MicroChild(Model):
                                                       data_format=self.data_format)
                             aux_logits = norm(aux_logits,
                                               is_training=is_training,
-                                              data_format=self.data_format)
+                                              data_format=self.data_format, norm_type="batch")
                             aux_logits = tf.nn.elu(aux_logits)
 
                         with tf.variable_scope("avg_pool"):
@@ -368,7 +368,7 @@ class MicroChild(Model):
                             aux_logits = tf.nn.conv2d(aux_logits, w, [1, 1, 1, 1], "SAME",
                                                       data_format=self.data_format)
                             aux_logits = norm(aux_logits,  is_training=is_training,
-                                              data_format=self.data_format)
+                                              data_format=self.data_format, norm_type="batch")
                             aux_logits = tf.nn.elu(aux_logits)
 
                         with tf.variable_scope("fc"):
@@ -423,7 +423,7 @@ class MicroChild(Model):
                     depthwise_filter=w_depthwise,
                     pointwise_filter=w_pointwise,
                     strides=strides, padding="SAME", data_format=self.data_format)
-                x = norm(x, is_training=is_training, data_format=self.data_format)
+                x = norm(x, is_training=is_training, data_format=self.data_format, norm_type="batch")
 
         return x
 
@@ -484,7 +484,7 @@ class MicroChild(Model):
             x = tf.nn.elu(x)
             x = tf.nn.conv2d(x, w, [1, 1, 1, 1], "SAME",
                              data_format=self.data_format)
-            x = norm(x, is_training=is_training, data_format=self.data_format)
+            x = norm(x, is_training=is_training, data_format=self.data_format, norm_type="batch")
             layers[1] = x
 
         used = np.zeros([self.num_cells + 2], dtype=np.int32)
@@ -517,7 +517,7 @@ class MicroChild(Model):
                             x = tf.nn.conv2d(x, w, [1, 1, 1, 1], "SAME",
                                              data_format=self.data_format)
                             x = norm(
-                                x, is_training=is_training, data_format=self.data_format)
+                                x, is_training=is_training, data_format=self.data_format, norm_type="batch")
                     else:
                         inp_c = self._get_C(x)
                         if x_stride > 1:
@@ -530,7 +530,7 @@ class MicroChild(Model):
                             x = tf.nn.conv2d(
                                 x, w, [1, 1, 1, 1], "SAME", data_format=self.data_format)
                             x = norm(
-                                x, is_training=is_training, data_format=self.data_format)
+                                x, is_training=is_training, data_format=self.data_format, norm_type="batch")
                     if (x_op in [0, 1, 2, 3] and
                         self.drop_path_keep_prob is not None and
                             is_training):
@@ -562,7 +562,7 @@ class MicroChild(Model):
                             y = tf.nn.conv2d(y, w, [1, 1, 1, 1], "SAME",
                                              data_format=self.data_format)
                             y = norm(
-                                y, is_training=is_training, data_format=self.data_format)
+                                y, is_training=is_training, data_format=self.data_format, norm_type="batch")
                     else:
                         inp_c = self._get_C(y)
                         if y_stride > 1:
@@ -575,7 +575,7 @@ class MicroChild(Model):
                             y = tf.nn.conv2d(y, w, [1, 1, 1, 1], "SAME",
                                              data_format=self.data_format)
                             y = norm(
-                                y, is_training=is_training, data_format=self.data_format)
+                                y, is_training=is_training, data_format=self.data_format, norm_type="batch")
 
                     if (y_op in [0, 1, 2, 3] and
                         self.drop_path_keep_prob is not None and
@@ -608,7 +608,7 @@ class MicroChild(Model):
                     avg_pool = tf.nn.conv2d(avg_pool, w, strides=[1, 1, 1, 1],
                                             padding="SAME", data_format=self.data_format)
                     avg_pool = norm(avg_pool, is_training=is_training,
-                                    data_format=self.data_format)
+                                    data_format=self.data_format, norm_type="batch")
 
         with tf.variable_scope("max_pool"):
             max_pool = tf.layers.max_pooling2d(
@@ -624,7 +624,7 @@ class MicroChild(Model):
                     max_pool = tf.nn.conv2d(max_pool, w, strides=[1, 1, 1, 1],
                                             padding="SAME", data_format=self.data_format)
                     max_pool = norm(max_pool, is_training=is_training,
-                                    data_format=self.data_format)
+                                    data_format=self.data_format, norm_type="batch")
 
         x_c = self._get_C(x)
         if x_c != out_filters:
@@ -637,7 +637,7 @@ class MicroChild(Model):
                 x = tf.nn.conv2d(x, w, strides=[1, 1, 1, 1], padding="SAME",
                                  data_format=self.data_format)
                 x = norm(x, is_training=is_training,
-                         data_format=self.data_format)
+                         data_format=self.data_format, norm_type="batch")
 
         out = [
             self._enas_conv(x, curr_cell, prev_cell, 3, out_filters, is_training=is_training),
@@ -687,7 +687,7 @@ class MicroChild(Model):
                         pointwise_filter=w_pointwise,
                         strides=[1, 1, 1, 1], padding="SAME",
                         data_format=self.data_format)
-                    x = norm(x, is_training=is_training, norm_type=norm_type)
+                    x = norm(x, is_training=is_training, norm_type=norm_type, norm_type="batch")
         return x
 
     def _enas_layer(self, layer_id, prev_layers, arc, out_filters, is_training):
@@ -787,7 +787,7 @@ class MicroChild(Model):
             out = tf.nn.conv2d(out, w, strides=[1, 1, 1, 1], padding="SAME",
                                data_format=self.data_format)
             out = norm(out, is_training=is_training,
-                       data_format=self.data_format)
+                       data_format=self.data_format, norm_type="batch")
 
         out = tf.reshape(out, tf.shape(prev_layers[0]))
 
@@ -838,8 +838,12 @@ class MicroChild(Model):
         normal_arc = []
         reduce_arc = []
         for batch_id in range(num_batches):
-            acc, cart_error, angle_error, mse, mae, normal_arc, reduce_arc = sess.run(
-                [acc_op, cart_op, ang_er_op, mse_op, mae_op, tf.convert_to_tensor(self.normal_arc), tf.convert_to_tensor(self.reduce_arc)], feed_dict=feed_dict)
+            if self.fixed_arc is None:
+                acc, cart_error, angle_error, mse, mae, normal_arc, reduce_arc = sess.run(
+                    [acc_op, cart_op, ang_er_op, mse_op, mae_op, tf.convert_to_tensor(self.normal_arc), tf.convert_to_tensor(self.reduce_arc)], feed_dict=feed_dict)
+            else:
+                acc, cart_error, angle_error, mse, mae = sess.run(
+                    [acc_op, cart_op, ang_er_op, mse_op, mae_op], feed_dict=feed_dict)
             total_acc += acc
             total_cart_error += cart_error
             total_angle_error += angle_error
@@ -863,10 +867,11 @@ class MicroChild(Model):
             eval_set, float(total_mse) / num_batches))
         print("{}_mae: {:<6.4f}".format(
             eval_set, float(total_mae) / num_batches))
-        print(eval_set, end=" ")
-        print('Eval Architecture:')
-        print(np.reshape(normal_arc, [-1]))
-        print(np.reshape(reduce_arc, [-1]))
+        if self.fixed_arc is None:
+            print(eval_set, end=" ")
+            print('Eval Architecture:')
+            print(np.reshape(normal_arc, [-1]))
+            print(np.reshape(reduce_arc, [-1]))
 
     # override
     def _build_train(self):
