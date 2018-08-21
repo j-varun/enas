@@ -298,7 +298,7 @@ class MicroChild(Model):
                 x = tf.nn.conv2d(
                     images, w, [1, 1, 1, 1], "SAME",
                     data_format=self.data_format)
-                x = norm(x, is_training=is_training, data_format=self.data_format)
+                x = norm(x, is_training=is_training, data_format=self.data_format, norm_type="batch")
             if self.data_format == "NHWC":
                 split_axis = 3
             elif self.data_format == "NCHW":
