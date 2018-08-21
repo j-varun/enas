@@ -277,7 +277,7 @@ class MicroChild(Model):
                     y = tf.nn.conv2d(y, w, [1, 1, 1, 1], "SAME",
                                      data_format=self.data_format)
                     y = norm(
-                        y, is_training=is_training, data_format=self.data_format)
+                        y, is_training=is_training, data_format=self.data_format, norm_type="batch")
         return [x, y]
 
     def _model(self, images, is_training, reuse=False):
