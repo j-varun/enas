@@ -21,7 +21,7 @@ python enas/cifar10/main.py \
   --child_num_layers=10 \
   --child_out_filters=36 \
   --child_num_branches=5 \
-  --child_num_cells=2 \
+  --child_num_cells=5 \
   --child_keep_prob=0.80 \
   --child_drop_path_keep_prob=0.60 \
   --child_l2_reg=2e-4 \
