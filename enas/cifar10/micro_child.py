@@ -687,7 +687,7 @@ class MicroChild(Model):
                         pointwise_filter=w_pointwise,
                         strides=[1, 1, 1, 1], padding="SAME",
                         data_format=self.data_format)
-                    x = norm(x, is_training=is_training, norm_type=norm_type, norm_type="batch")
+                    x = norm(x, is_training=is_training, norm_type="batch")
         return x
 
     def _enas_layer(self, layer_id, prev_layers, arc, out_filters, is_training):
