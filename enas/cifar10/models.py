@@ -109,16 +109,16 @@ class Model(object):
                 else:
                     print("-------Loading train-test-val from txt files-------")
                     self.data_base_path = os.path.expanduser(self.data_base_path)
-                    with open(self.data_base_path + 'train.txt', mode='r') as myfile:
+                    with open(self.data_base_path + 'costar_block_stacking_v0.3_success_only_train_files.txt', mode='r') as myfile:
                         train_data = myfile.read().splitlines()
-                    with open(self.data_base_path + 'test.txt', mode='r') as myfile:
+                    with open(self.data_base_path + 'costar_block_stacking_v0.3_success_only_test_files.txt', mode='r') as myfile:
                         test_data = myfile.read().splitlines()
-                    with open(self.data_base_path + 'valid.txt', mode='r') as myfile:
+                    with open(self.data_base_path + 'costar_block_stacking_v0.3_success_only_val_files.txt', mode='r') as myfile:
                         validation_data = myfile.read().splitlines()
                     print(train_data)
-                    train_data = [self.data_base_path + name for name in train_data]
-                    test_data = [self.data_base_path + name for name in test_data]
-                    validation_data = [self.data_base_path + name for name in validation_data]
+                    #train_data = [self.data_base_path + name for name in train_data]
+                    #test_data = [self.data_base_path + name for name in test_data]
+                    #validation_data = [self.data_base_path + name for name in validation_data]
                     print(validation_data)
                 # number of images to look at per example
                 # TODO(ahundt) currently there is a bug in one of these calculations, lowering images per example to reduce number of steps per epoch for now.
