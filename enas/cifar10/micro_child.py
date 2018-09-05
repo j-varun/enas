@@ -823,6 +823,7 @@ class MicroChild(Model):
             ang_er_op = self.valid_angle_error
             mse_op = self.valid_loss
             mae_op = self.valid_mae
+            csvfile = self.data_base_path + "valid_metrics.csv"
         elif eval_set == "test":
             assert self.test_acc is not None
             num_examples = self.num_test_examples
@@ -835,6 +836,7 @@ class MicroChild(Model):
             cart_op = self.test_cart_error
             mse_op = self.test_loss
             mae_op = self.test_mae
+            csvfile = self.data_base_path + "test_metrics.csv"
         else:
             raise NotImplementedError("Unknown eval_set '{}'".format(eval_set))
 
@@ -891,6 +893,9 @@ class MicroChild(Model):
             # print(np.reshape(normal_arc, [-1]))
             # print(np.reshape(reduce_arc, [-1]))
             normal_arc = tf.Print(tf.zeros([1]), [self.normal_arc, self.reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
+        csv_row = [total_acc, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_mse, total_mae, total_angle_error, total_cart_error]
+        with open(csvfile, "a") as fp:
+            fp.write("{}, {}, {}, {}, {}, {}, {}, {}\n".format(total_acc, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_mse, total_mae, total_angle_error, total_cart_error))
 
     # override
     def _build_train(self):
