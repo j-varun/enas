@@ -371,6 +371,7 @@ class CostarBlockStackingSequence(Sequence):
 
             # Generate data
             for i, example_filename in enumerate(list_Ids):
+                example_filename = os.path.expanduser(example_filename)
                 if self.verbose > 0:
                     print('reading: ' + str(i) + ' path: ' + str(example_filename))
                 # Store sample
