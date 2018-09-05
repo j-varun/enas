@@ -64,6 +64,7 @@ class MicroChild(Model):
                  rotation_only=False,
                  stacking_reward=False,
                  dataset="cifar",
+                 data_base_path="",
                  pool_distance=2,
                  **kwargs
                  ):
@@ -92,6 +93,7 @@ class MicroChild(Model):
             translation_only=translation_only,
             rotation_only=rotation_only,
             stacking_reward=stacking_reward,
+            data_base_path=data_base_path,
             dataset=dataset)
 
         if self.data_format == "NHWC":
@@ -118,6 +120,7 @@ class MicroChild(Model):
         self.translation_only = translation_only
         self.rotation_only = rotation_only
         self.stacking_reward = stacking_reward
+        self.data_base_path = data_base_path
         self.verbose = 0
 
         self.global_step = tf.Variable(
@@ -813,6 +816,9 @@ class MicroChild(Model):
             num_examples = self.num_valid_examples
             num_batches = self.num_valid_batches
             acc_op = self.valid_acc
+            acc_op_2_30 = self.valid_acc_2cm_30deg
+            acc_op_4_60 = self.valid_acc_4cm_60deg
+            acc_op_8_120 = self.valid_acc_8cm_120deg
             cart_op = self.valid_cart_error
             ang_er_op = self.valid_angle_error
             mse_op = self.valid_loss
@@ -822,6 +828,9 @@ class MicroChild(Model):
             num_examples = self.num_test_examples
             num_batches = self.num_test_batches
             acc_op = self.test_acc
+            acc_op_2_30 = self.test_acc_2cm_30deg
+            acc_op_4_60 = self.test_acc_4cm_60deg
+            acc_op_8_120 = self.test_acc_8cm_120deg
             ang_er_op = self.test_angle_error
             cart_op = self.test_cart_error
             mse_op = self.test_loss
@@ -839,12 +848,15 @@ class MicroChild(Model):
         reduce_arc = []
         for batch_id in range(num_batches):
             if self.fixed_arc is None:
-                acc, cart_error, angle_error, mse, mae, normal_arc, reduce_arc = sess.run(
-                    [acc_op, cart_op, ang_er_op, mse_op, mae_op, tf.convert_to_tensor(self.normal_arc), tf.convert_to_tensor(self.reduce_arc)], feed_dict=feed_dict)
+                acc, acc_2_30, acc_4_60, acc_8_120, cart_error, angle_error, mse, mae, normal_arc, reduce_arc = sess.run(
+                    [acc_op, acc_op_2_30, acc_op_4_60, acc_op_8_120, cart_op, ang_er_op, mse_op, mae_op], feed_dict=feed_dict)
             else:
-                acc, cart_error, angle_error, mse, mae = sess.run(
-                    [acc_op, cart_op, ang_er_op, mse_op, mae_op], feed_dict=feed_dict)
+                acc, acc_2_30, acc_4_60, acc_8_120, cart_error, angle_error, mse, mae = sess.run(
+                    [acc_op, acc_op_2_30, acc_op_4_60, acc_op_8_120, cart_op, ang_er_op, mse_op, mae_op], feed_dict=feed_dict)
             total_acc += acc
+            total_acc_2_30 += acc_2_30
+            total_acc_4_60 += acc_4_60
+            total_acc_8_120 += acc_8_120
             total_cart_error += cart_error
             total_angle_error += angle_error
             total_mse += mse
@@ -857,6 +869,12 @@ class MicroChild(Model):
             print("")
         print("{}_accuracy: {:<6.4f}".format(
             eval_set, float(total_acc) / total_exp))
+        print("{}_accuracy_2cm_30deg: {:<6.4f}".format(
+            eval_set, float(total_acc_2_30) / total_exp))
+        print("{}_accuracy_4cm_60deg: {:<6.4f}".format(
+            eval_set, float(total_acc_4_60) / total_exp))
+        print("{}_accuracy_8cm_120deg: {:<6.4f}".format(
+            eval_set, float(total_acc_8_120) / total_exp))
         if self.rotation_only is False and self.stacking_reward is False:
             print("{}_cart_error: {:<6.4f}".format(
                 eval_set, float(total_cart_error) / num_batches))
@@ -870,8 +888,9 @@ class MicroChild(Model):
         if self.fixed_arc is None:
             print(eval_set, end=" ")
             print('Eval Architecture:')
-            print(np.reshape(normal_arc, [-1]))
-            print(np.reshape(reduce_arc, [-1]))
+            # print(np.reshape(normal_arc, [-1]))
+            # print(np.reshape(reduce_arc, [-1]))
+            normal_arc = tf.Print(tf.zeros([1]), [self.normal_arc, self.reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
 
     # override
     def _build_train(self):
@@ -914,8 +933,20 @@ class MicroChild(Model):
             self.train_acc = grasp_metrics.grasp_acc(
                 self.y_train, self.train_preds)
             print("train_acc--------------", self.train_acc)
-            self.train_acc = cast_type(self.train_acc)
+            self.train_acc = self.train_acc
             self.train_acc = tf.reduce_mean(self.train_acc)
+            self.train_acc_2cm_30deg = grasp_metrics.grasp_acc_2cm_30deg(
+                self.y_train, self.train_preds)
+            self.train_acc_2cm_30deg = tf.reduce_mean(self.train_acc_2cm_30deg)
+
+            self.train_acc_4cm_60deg = grasp_metrics.grasp_acc_4cm_60deg(
+                self.y_train, self.train_preds)
+            self.train_acc_4cm_60deg = tf.reduce_mean(self.train_acc_4cm_60deg)
+
+            self.train_acc_8cm_120deg = grasp_metrics.grasp_acc_8cm_120deg(
+                self.y_train, self.train_preds)
+            self.train_acc_8cm_120deg = tf.reduce_mean(self.train_acc_8cm_120deg)
+
             self.train_cart_error = grasp_metrics.cart_error(
                 self.y_train, self.train_preds)
             if self.rotation_only is True or self.stacking_reward is True:
@@ -986,6 +1017,18 @@ class MicroChild(Model):
                 self.valid_acc = grasp_metrics.grasp_acc(
                     self.y_valid, self.valid_preds)
                 self.valid_acc = tf.reduce_sum(self.valid_acc)
+                self.valid_acc_2cm_30deg = grasp_metrics.grasp_acc_2cm_30deg(
+                    self.y_valid, self.valid_preds)
+                self.valid_acc_2cm_30deg = tf.reduce_sum(self.valid_acc_2cm_30deg)
+
+                self.valid_acc_4cm_60deg = grasp_metrics.grasp_acc_4cm_60deg(
+                    self.y_valid, self.valid_preds)
+                self.valid_acc_4cm_60deg = tf.reduce_sum(self.valid_acc_4cm_60deg)
+
+                self.valid_acc_8cm_120deg = grasp_metrics.grasp_acc_8cm_120deg(
+                    self.y_valid, self.valid_preds)
+                self.valid_acc_8cm_120deg = tf.reduce_sum(self.valid_acc_8cm_120deg)
+
                 self.valid_loss = tf.reduce_mean(tf.losses.mean_squared_error(
                     labels=self.y_valid, predictions=self.valid_preds))
                 self.valid_cart_error = grasp_metrics.cart_error(
@@ -1024,6 +1067,18 @@ class MicroChild(Model):
             self.test_acc = grasp_metrics.grasp_acc(
                 self.y_test, self.test_preds)
             self.test_acc = tf.reduce_sum(self.test_acc)
+
+            self.test_acc_2cm_30deg = grasp_metrics.grasp_acc_2cm_30deg(
+                    self.y_test, self.test_preds)
+            self.test_acc_2cm_30deg = tf.reduce_sum(self.test_acc_2cm_30deg)
+
+            self.test_acc_4cm_60deg = grasp_metrics.grasp_acc_4cm_60deg(
+                self.y_test, self.test_preds)
+            self.test_acc_4cm_60deg = tf.reduce_sum(self.test_acc_4cm_60deg)
+
+            self.test_acc_8cm_120deg = grasp_metrics.grasp_acc_8cm_120deg(
+                self.y_test, self.test_preds)
+            self.test_acc_8cm_120deg = tf.reduce_sum(self.test_acc_8cm_120deg)
             self.test_cart_error = grasp_metrics.cart_error(
                 self.y_test, self.test_preds)
             if self.rotation_only is True or self.stacking_reward is True:
@@ -1119,6 +1174,17 @@ class MicroChild(Model):
             self.valid_shuffle_acc = grasp_metrics.grasp_acc(
                 self.y_valid_shuffle, self.valid_shuffle_preds)
             self.valid_shuffle_acc = tf.reduce_sum(self.valid_shuffle_acc)
+            self.valid_shuffle_acc_2cm_30deg = grasp_metrics.grasp_acc_2cm_30deg(
+                    self.y_valid_shuffle, self.valid_shuffle_preds)
+            self.valid_shuffle_acc_2cm_30deg = tf.reduce_sum(self.valid_shuffle_acc_2cm_30deg)
+
+            self.valid_shuffle_acc_4cm_60deg = grasp_metrics.grasp_acc_4cm_60deg(
+                self.y_valid_shuffle, self.valid_shuffle_preds)
+            self.valid_shuffle_acc_4cm_60deg = tf.reduce_sum(self.valid_shuffle_acc_4cm_60deg)
+
+            self.valid_shuffle_acc_8cm_120deg = grasp_metrics.grasp_acc_8cm_120deg(
+                self.y_valid_shuffle, self.valid_shuffle_preds)
+            self.valid_shuffle_acc_8cm_120deg = tf.reduce_sum(self.valid_shuffle_acc_8cm_120deg)
             self.valid_shuffle_loss = tf.reduce_mean(tf.losses.mean_squared_error(
                     labels=self.y_valid_shuffle, predictions=self.valid_shuffle_preds))
             self.valid_shuffle_cart_error = grasp_metrics.cart_error(

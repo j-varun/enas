@@ -39,6 +39,7 @@ FLAGS = flags.FLAGS
 
 DEFINE_boolean("reset_output_dir", False, "Delete output_dir if exists.")
 DEFINE_string("data_path", "", "")
+DEFINE_string("data_base_path", "~/.keras/datasets/costar_block_stacking_dataset_v0.3/", "")
 DEFINE_string("output_dir", "", "")
 DEFINE_string("data_format", "NHWC", "'NHWC' or 'NCWH'")
 DEFINE_string("dataset", "cifar", "'cifar' or 'fmnist' or 'stacking'")
@@ -172,6 +173,7 @@ def get_ops(images, labels):
         rotation_only=FLAGS.rotation_only,
         stacking_reward=FLAGS.stacking_reward,
         dataset=FLAGS.dataset,
+        data_base_path=FLAGS.data_base_path,
         pool_distance=FLAGS.child_pool_distance,
         random_augmentation=FLAGS.random_augmentation
     )
@@ -240,6 +242,9 @@ def get_ops(images, labels):
         "lr": child_model.lr,
         "grad_norm": child_model.grad_norm,
         "train_acc": child_model.train_acc,
+        "train_acc_2cm_30deg": child_model.train_acc_2cm_30deg,
+        "train_acc_4cm_60deg": child_model.train_acc_4cm_60deg,
+        "train_acc_8cm_120deg": child_model.train_acc_8cm_120deg,
         "optimizer": child_model.optimizer,
         "num_train_batches": child_model.num_train_batches,
         "train_angle_error": child_model.train_angle_error,
@@ -300,6 +305,9 @@ def train():
                     child_ops["lr"],
                     child_ops["grad_norm"],
                     child_ops["train_acc"],
+                    child_ops["train_acc_2cm_30deg"],
+                    child_ops["train_acc_4cm_60deg"],
+                    child_ops["train_acc_8cm_120deg"],
                     child_ops["train_op"],
                     child_ops["train_angle_error"],
                     child_ops["train_cart_error"],
@@ -307,7 +315,7 @@ def train():
                     child_ops["train_preds"],
                     child_ops["train_label"],
                 ]
-                loss, lr, gn, tr_acc, tr_op, tr_angle_error, tr_cart_error, tr_mae, tr_preds, tr_label = sess.run(
+                loss, lr, gn, tr_acc, tr_acc_2_30, tr_acc_4_60, tr_acc_8_120, tr_op, tr_angle_error, tr_cart_error, tr_mae, tr_preds, tr_label = sess.run(
                     run_ops)
                 global_step = sess.run(child_ops["global_step"])
                 print("---------------global step", global_step, end="\r")
@@ -327,6 +335,12 @@ def train():
                     log_string += " |g|={:<8.4f}".format(gn)
                     log_string += " child_tr_acc={:<3f}".format(
                         tr_acc)
+                    log_string += "\nchild_tr_acc_2cm_30deg={:<3f}".format(
+                        tr_acc_2_30)
+                    log_string += "\nchild_tr_acc_4cm_60deg={:<3f}".format(
+                        tr_acc_4_60)
+                    log_string += "\nchild_tr_acc_8cm_120deg={:<3f}".format(
+                        tr_acc_8_120)
                     log_string += " mins={:<10.2f}".format(
                         float(curr_time - start_time) / 60)
                     if FLAGS.dataset == "stacking":

@@ -377,10 +377,12 @@ class CostarBlockStackingSequence(Sequence):
                 # X[i,] = np.load('data/' + example_filename + '.npy')
                 x = ()
                 try:
+                    if not os.path.isfile(example_filename):
+                        raise ValueError('CostarBlockStackingSequence: Trying to open something which is not a file: ' + str(example_filename))
                     with h5py.File(example_filename, 'r') as data:
                         if 'gripper_action_goal_idx' not in data or 'gripper_action_label' not in data:
                             raise ValueError('block_stacking_reader.py: You need to run preprocessing before this will work! \n' +
-                                             '    python2 ctp_integration/scripts/view_convert_dataset.py --path ~/.keras/datasets/costar_block_stacking_dataset_v0.2 --preprocess_inplace gripper_action --write'
+                                             '    python2 ctp_integration/scripts/view_convert_dataset.py --path ~/.keras/datasets/costar_block_stacking_dataset_v0.3 --preprocess_inplace gripper_action --write'
                                              '\n File with error: ' + str(example_filename))
                         # indices = [0]
                         # len of goal indexes is the same as the number of images, so this saves loading all the images
@@ -389,8 +391,8 @@ class CostarBlockStackingSequence(Sequence):
                             # TODO(ahundt) move this check out of the stacking reward case after files have been updated
                             if all_goal_ids[-1] > len(all_goal_ids):
                                 raise ValueError(' File contains goal id greater than total number of frames ' + str(example_filename))
-                        if len(all_goal_ids) == 0:
-                            print('block_stacking_reader.py: no goal indices in this file, skipping: ' + example_filename)
+                        if len(all_goal_ids) < 2:
+                            print('block_stacking_reader.py: ' + str(len(all_goal_ids)) + ' goal indices in this file, skipping: ' + example_filename)
                         if 'success' in example_filename:
                             label_constant = 1
                         else:
@@ -399,9 +401,11 @@ class CostarBlockStackingSequence(Sequence):
                         stacking_reward = 0.999 * stacking_reward * label_constant
                         # print("reward estimates", stacking_reward)
 
-
                         if self.seed is not None:
-                            image_indices = self.random_state.randint(1, len(all_goal_ids)-1, 1)
+                            rand_max = len(all_goal_ids) - 1
+                            if rand_max <= 1:
+                                print('CostarBlockStackingSequence: not enough goal ids: ' + str(all_goal_ids) + ' file: ' + str(rand_max))
+                            image_indices = self.random_state.randint(1, rand_max, 1)
                         else:
                             raise NotImplementedError
                         indices = [0] + list(image_indices)
@@ -644,18 +648,18 @@ def block_stacking_generator(sequence):
         yield batch
 
 if __name__ == "__main__":
-    visualize = False
+    visualize = True
     output_shape = (224, 224, 3)
     # output_shape = None
     tf.enable_eager_execution()
-    filenames = glob.glob(os.path.expanduser('~/.keras/datasets/costar_block_stacking_dataset_v0.2/*success.h5f'))
+    filenames = glob.glob(os.path.expanduser('~/.keras/datasets/costar_block_stacking_dataset_v0.3/*success.h5f'))
     # print(filenames)
     training_generator = CostarBlockStackingSequence(
-        filenames, batch_size=2, verbose=1,
+        filenames, batch_size=1, verbose=1,
         output_shape=output_shape,
-        label_features_to_extract='stacking_reward',
-        data_features_to_extract=['image_0_image_n_vec_0_vec_n_xyz_aaxyz_nsc_nxygrid_25'],
-        blend_previous_goal_images=False)
+        label_features_to_extract='grasp_goal_xyz_aaxyz_nsc_8',
+        data_features_to_extract=['current_xyz_aaxyz_nsc_8'],
+        blend_previous_goal_images=True)
     num_batches = len(training_generator)
 
     bsg = block_stacking_generator(training_generator)

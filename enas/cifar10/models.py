@@ -47,6 +47,7 @@ class Model(object):
                  rotation_only=False,
                  stacking_reward=False,
                  dataset="cifar",
+                 data_base_path="",
                  random_augmentation=None
                  ):
         """
@@ -81,6 +82,7 @@ class Model(object):
         self.translation_only = translation_only
         self.stacking_reward = stacking_reward
         self.random_augmentation = random_augmentation
+        self.data_base_path = data_base_path
 
         self.global_step = None
         self.valid_acc = None
@@ -95,14 +97,29 @@ class Model(object):
                 Dataset = tf.data.Dataset
                 flags = tf.app.flags
                 FLAGS = flags.FLAGS
-                print("datadir------------", images["path"])
-                file_names = glob.glob(os.path.expanduser(images["path"]))
                 np.random.seed(0)
                 val_test_size = self.valid_set_size
-                train_data = file_names[val_test_size*2:]
-                validation_data = file_names[val_test_size:val_test_size*2]
-                self.validation_data = validation_data
-                test_data = file_names[:val_test_size]
+                if images["path"] != "":
+                    print("datadir------------", images["path"])
+                    file_names = glob.glob(os.path.expanduser(images["path"]))
+                    train_data = file_names[val_test_size*2:]
+                    validation_data = file_names[val_test_size:val_test_size*2]
+                    self.validation_data = validation_data
+                    test_data = file_names[:val_test_size]
+                else:
+                    print("-------Loading train-test-val from txt files-------")
+                    self.data_base_path = os.path.expanduser(self.data_base_path)
+                    with open(self.data_base_path + 'train.txt', mode='r') as myfile:
+                        train_data = myfile.read().splitlines()
+                    with open(self.data_base_path + 'test.txt', mode='r') as myfile:
+                        test_data = myfile.read().splitlines()
+                    with open(self.data_base_path + 'valid.txt', mode='r') as myfile:
+                        validation_data = myfile.read().splitlines()
+                    print(train_data)
+                    train_data = [self.data_base_path + name for name in train_data]
+                    test_data = [self.data_base_path + name for name in test_data]
+                    validation_data = [self.data_base_path + name for name in validation_data]
+                    print(validation_data)
                 # number of images to look at per example
                 # TODO(ahundt) currently there is a bug in one of these calculations, lowering images per example to reduce number of steps per epoch for now.
                 estimated_images_per_example = 2
