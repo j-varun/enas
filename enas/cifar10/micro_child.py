@@ -65,6 +65,7 @@ class MicroChild(Model):
                  stacking_reward=False,
                  dataset="cifar",
                  data_base_path="",
+                 output_dir="",
                  pool_distance=2,
                  **kwargs
                  ):
@@ -122,6 +123,7 @@ class MicroChild(Model):
         self.stacking_reward = stacking_reward
         self.data_base_path = data_base_path
         self.verbose = 0
+        self.output_dir = output_dir
 
         self.global_step = tf.Variable(
             0, dtype=tf.int32, trainable=False, name="global_step")
@@ -823,7 +825,7 @@ class MicroChild(Model):
             ang_er_op = self.valid_angle_error
             mse_op = self.valid_loss
             mae_op = self.valid_mae
-            csvfile = self.data_base_path + "valid_metrics.csv"
+            csvfile = self.output_dir + "/valid_metrics.csv"
         elif eval_set == "test":
             assert self.test_acc is not None
             num_examples = self.num_test_examples
@@ -836,11 +838,14 @@ class MicroChild(Model):
             cart_op = self.test_cart_error
             mse_op = self.test_loss
             mae_op = self.test_mae
-            csvfile = self.data_base_path + "test_metrics.csv"
+            csvfile = self.output_dir + "/test_metrics.csv"
         else:
             raise NotImplementedError("Unknown eval_set '{}'".format(eval_set))
 
         total_acc = 0
+        total_acc_2_30 = 0
+        total_acc_4_60 = 0
+        total_acc_8_120 = 0
         total_cart_error = 0
         total_mae = 0
         total_mse = 0
@@ -856,7 +861,7 @@ class MicroChild(Model):
                 # remove the print arc tensor if we're on batch 1
                 feed_dict.pop('print_arc', None)
             if self.fixed_arc is None:
-                acc, acc_2_30, acc_4_60, acc_8_120, cart_error, angle_error, mse, mae, normal_arc, reduce_arc = sess.run(
+                acc, acc_2_30, acc_4_60, acc_8_120, cart_error, angle_error, mse, mae = sess.run(
                     [acc_op, acc_op_2_30, acc_op_4_60, acc_op_8_120, cart_op, ang_er_op, mse_op, mae_op], feed_dict=feed_dict)
             else:
                 acc, acc_2_30, acc_4_60, acc_8_120, cart_error, angle_error, mse, mae = sess.run(
@@ -898,12 +903,12 @@ class MicroChild(Model):
             print('Eval Architecture:')
             # print(np.reshape(normal_arc, [-1]))
             # print(np.reshape(reduce_arc, [-1]))
-            normal_arc = tf.Print(tf.zeros([1]), [self.normal_arc, self.reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
+            # self.global_step = tf.Print(self.global_step, [self.normal_arc, self.reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
         csv_row = [total_acc, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_mse, total_mae, total_angle_error, total_cart_error]
         if os.path.exists(csvfile):
             file_mode = 'a'
         else:
-            file_mode = 'w'
+            file_mode = 'w+'
         with open(csvfile, file_mode) as fp:
             fp.write("{}, {}, {}, {}, {}, {}, {}, {}\n".format(total_acc, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_mse, total_mae, total_angle_error, total_cart_error))
 
@@ -1229,8 +1234,9 @@ class MicroChild(Model):
     def connect_controller(self, controller_model, verbose=0):
         if self.fixed_arc is None:
             sample_arc = controller_model.sample_arc
-            normal_arc, reduce_arc = sample_arc
+            normal_arc, reduce_arc = sample_arc                
             self.print_arc = tf.Print(tf.zeros([1]), [normal_arc, reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
+
             if verbose:
                 normal_arc = tf.Print(normal_arc, [normal_arc, reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
             self.normal_arc = normal_arc
