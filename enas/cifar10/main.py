@@ -408,7 +408,11 @@ def train():
                                     log_string += "\nmae={}".format(mae)
                                 # log_string += "\n g_emb = {}".format(g_emb)
                                 print(log_string)
-                                with open(FLAGS.data_base_path+"controller_metrics.csv", "a") as fp:
+                                if os.path.exists(FLAGS.data_base_path+"controller_metrics.csv"):
+                                    file_mode = 'a'
+                                else:
+                                    file_mode = 'w'
+                                with open(FLAGS.data_base_path+"controller_metrics.csv", file_mode ) as fp:
                                     fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(epoch, loss, entropy, lr, gn, val_acc, bl, reward, c_mse, cart_error, angle_error, mae))
 
                         print("Here are 10 architectures")
