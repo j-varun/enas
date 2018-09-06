@@ -855,9 +855,11 @@ class MicroChild(Model):
         reduce_arc = []
         for batch_id in range(num_batches):
             if batch_id == 0:
+                if feed_dict is None:
+                    feed_dict = {}
                 # print the arc if we're on batch 0
                 feed_dict['print_arc'] = self.print_arc
-            elif batch_id == 1 and 'print_arc' in feed_dict:
+            elif batch_id == 1 and feed_dict is not None and 'print_arc' in feed_dict:
                 # remove the print arc tensor if we're on batch 1
                 feed_dict.pop('print_arc', None)
             if self.fixed_arc is None:
@@ -1234,7 +1236,7 @@ class MicroChild(Model):
     def connect_controller(self, controller_model, verbose=0):
         if self.fixed_arc is None:
             sample_arc = controller_model.sample_arc
-            normal_arc, reduce_arc = sample_arc                
+            normal_arc, reduce_arc = sample_arc
             self.print_arc = tf.Print(tf.zeros([1]), [normal_arc, reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
 
             if verbose:
