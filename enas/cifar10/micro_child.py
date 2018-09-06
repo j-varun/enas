@@ -849,6 +849,12 @@ class MicroChild(Model):
         normal_arc = []
         reduce_arc = []
         for batch_id in range(num_batches):
+            if batch_id == 0:
+                # print the arc if we're on batch 0
+                feed_dict['print_arc'] = self.print_arc
+            elif batch_id == 1 and 'print_arc' in feed_dict:
+                # remove the print arc tensor if we're on batch 1
+                feed_dict.pop('print_arc', None)
             if self.fixed_arc is None:
                 acc, acc_2_30, acc_4_60, acc_8_120, cart_error, angle_error, mse, mae, normal_arc, reduce_arc = sess.run(
                     [acc_op, acc_op_2_30, acc_op_4_60, acc_op_8_120, cart_op, ang_er_op, mse_op, mae_op], feed_dict=feed_dict)
@@ -1220,6 +1226,7 @@ class MicroChild(Model):
         if self.fixed_arc is None:
             sample_arc = controller_model.sample_arc
             normal_arc, reduce_arc = sample_arc
+            self.print_arc = tf.Print(tf.zeros([1]), [normal_arc, reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
             if verbose:
                 normal_arc = tf.Print(normal_arc, [normal_arc, reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
             self.normal_arc = normal_arc
