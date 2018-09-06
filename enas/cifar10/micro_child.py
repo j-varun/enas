@@ -900,7 +900,11 @@ class MicroChild(Model):
             # print(np.reshape(reduce_arc, [-1]))
             normal_arc = tf.Print(tf.zeros([1]), [self.normal_arc, self.reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
         csv_row = [total_acc, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_mse, total_mae, total_angle_error, total_cart_error]
-        with open(csvfile, "a") as fp:
+        if os.path.exists(csvfile):
+            file_mode = 'a'
+        else:
+            file_mode = 'w'
+        with open(csvfile, file_mode) as fp:
             fp.write("{}, {}, {}, {}, {}, {}, {}, {}\n".format(total_acc, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_mse, total_mae, total_angle_error, total_cart_error))
 
     # override

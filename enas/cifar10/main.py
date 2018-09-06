@@ -352,7 +352,11 @@ def train():
                         log_string += "\ntr_preds={}".format(tr_preds)
                         log_string += "\ntr_label={}".format(tr_label)
                     print(log_string)
-                    with open(FLAGS.data_base_path+"train_metrics.csv", "a") as fp:
+                    if os.path.exists(FLAGS.data_base_path+"train_metrics.csv"):
+                        file_mode = 'a'
+                    else:
+                        file_mode = 'w'
+                    with open(FLAGS.data_base_path+"train_metrics.csv", file_mode) as fp:
                         fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(epoch, global_step, loss, tr_acc, tr_acc_2_30, tr_acc_4_60, tr_acc_8_120, tr_op, tr_angle_error, tr_cart_error, tr_mae))
 
                 if actual_step % ops["eval_every"] == 0:
@@ -404,7 +408,11 @@ def train():
                                     log_string += "\nmae={}".format(mae)
                                 # log_string += "\n g_emb = {}".format(g_emb)
                                 print(log_string)
-                                with open(FLAGS.data_base_path+"controller_metrics.csv", "a") as fp:
+                                if os.path.exists(FLAGS.data_base_path+"controller_metrics.csv"):
+                                    file_mode = 'a'
+                                else:
+                                    file_mode = 'w'
+                                with open(FLAGS.data_base_path+"controller_metrics.csv", file_mode ) as fp:
                                     fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(epoch, loss, entropy, lr, gn, val_acc, bl, reward, c_mse, cart_error, angle_error, mae))
 
                         print("Here are 10 architectures")
