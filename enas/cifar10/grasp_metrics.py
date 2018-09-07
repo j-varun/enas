@@ -808,7 +808,7 @@ def normalize_axis(aaxyz, epsilon=1e-5, verbose=0):
     return aaxyz
 
 
-def encode_xyz_qxyzw_to_xyz_aaxyz_nsc(xyz_qxyzw, rescale_meters=4, rotation_weight=0.001, random_augmentation=None):
+def encode_xyz_qxyzw_to_xyz_aaxyz_nsc(xyz_qxyzw, rescale_meters=4, rotation_weight=1, random_augmentation=None):
     """ Encode a translation + quaternion pose to an encoded xyz, axis, and an angle as sin(theta) cos(theta)
 
     rescale_meters: Divide the number of meters by this number so
@@ -861,7 +861,7 @@ def encode_xyz_qxyzw_to_xyz_aaxyz_nsc(xyz_qxyzw, rescale_meters=4, rotation_weig
         raise ValueError('encode_xyz_qxyzw_to_xyz_aaxyz_nsc: unsupported input data length of ' + str(length))
 
 
-def batch_encode_xyz_qxyzw_to_xyz_aaxyz_nsc(batch_xyz_qxyzw, rescale_meters=4, rotation_weight=0.001, random_augmentation=None):
+def batch_encode_xyz_qxyzw_to_xyz_aaxyz_nsc(batch_xyz_qxyzw, rescale_meters=4, rotation_weight=1, random_augmentation=None):
     """ Expects n by 7 batch with xyz_qxyzw
 
     rescale_meters: Divide the number of meters by this number so
@@ -885,7 +885,7 @@ def batch_encode_xyz_qxyzw_to_xyz_aaxyz_nsc(batch_xyz_qxyzw, rescale_meters=4, r
     return np.stack(encoded_poses, axis=0)
 
 
-def decode_xyz_aaxyz_nsc_to_xyz_qxyzw(xyz_aaxyz_nsc, rescale_meters=4, rotation_weight=0.001):
+def decode_xyz_aaxyz_nsc_to_xyz_qxyzw(xyz_aaxyz_nsc, rescale_meters=4, rotation_weight=1):
     """ Encode a translation + quaternion pose to an encoded xyz, axis, and an angle as sin(theta) cos(theta)
 
     rescale_meters: Divide the number of meters by this number so
