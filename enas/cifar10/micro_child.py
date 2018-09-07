@@ -164,7 +164,7 @@ class MicroChild(Model):
 
         stride_spec = self._get_strides(stride)
         # Skip path 1
-        path1 = tf.nn.avg_pool(
+        path1 = tf.nn.max_pool(
             x, [1, 1, 1, 1], stride_spec, "VALID",
             data_format=self.data_format)
         with tf.variable_scope("path1_conv"):
@@ -185,7 +185,7 @@ class MicroChild(Model):
             path2 = tf.pad(x, pad_arr)[:, :, 1:, 1:]
             concat_axis = 1
 
-        path2 = tf.nn.avg_pool(
+        path2 = tf.nn.max_pool(
             path2, [1, 1, 1, 1], stride_spec, "VALID",
             data_format=self.data_format)
         with tf.variable_scope("path2_conv"):
