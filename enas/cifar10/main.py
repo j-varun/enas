@@ -374,7 +374,7 @@ def train():
                     else:
                         file_mode = 'w+'
                     with open(FLAGS.output_dir+"/train_metrics.csv", file_mode) as fp:
-                        fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(
+                        fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(
                             epoch, global_step, loss, tr_acc, tr_acc_5_7_5, tr_acc_1_15, tr_acc_2_30, tr_acc_4_60, tr_acc_8_120, tr_acc_16_240, tr_acc_32_360, tr_op, tr_angle_error, tr_cart_error, tr_mae))
 
                 if actual_step % ops["eval_every"] == 0:

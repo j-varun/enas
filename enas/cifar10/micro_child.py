@@ -928,7 +928,7 @@ class MicroChild(Model):
         else:
             file_mode = 'w+'
         with open(csvfile, file_mode) as fp:
-            fp.write("{}, {}, {}, {}, {}, {}, {}, {}\n".format(total_acc, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_mse, total_mae, total_angle_error, total_cart_error))
+            fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(total_acc, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_mse, total_mae, total_angle_error, total_cart_error))
 
     # override
     def _build_train(self):
