@@ -243,9 +243,13 @@ def get_ops(images, labels):
         "lr": child_model.lr,
         "grad_norm": child_model.grad_norm,
         "train_acc": child_model.train_acc,
+        "train_acc_5mm_7_5deg": child_model.train_acc_5mm_7_5deg,
+        "train_acc_1cm_15deg": child_model.train_acc_1cm_15deg,
         "train_acc_2cm_30deg": child_model.train_acc_2cm_30deg,
         "train_acc_4cm_60deg": child_model.train_acc_4cm_60deg,
         "train_acc_8cm_120deg": child_model.train_acc_8cm_120deg,
+        "train_acc_16cm_240deg": child_model.train_acc_16cm_240deg,
+        "train_acc_32cm_360deg": child_model.train_acc_32cm_360deg,
         "optimizer": child_model.optimizer,
         "num_train_batches": child_model.num_train_batches,
         "train_angle_error": child_model.train_angle_error,
@@ -306,9 +310,13 @@ def train():
                     child_ops["lr"],
                     child_ops["grad_norm"],
                     child_ops["train_acc"],
+                    child_ops["train_acc_5mm_7_5deg"],
+                    child_ops["train_acc_1cm_15deg"],
                     child_ops["train_acc_2cm_30deg"],
                     child_ops["train_acc_4cm_60deg"],
                     child_ops["train_acc_8cm_120deg"],
+                    child_ops["train_acc_16cm_240deg"],
+                    child_ops["train_acc_32cm_360deg"],
                     child_ops["train_op"],
                     child_ops["train_angle_error"],
                     child_ops["train_cart_error"],
@@ -316,7 +324,7 @@ def train():
                     child_ops["train_preds"],
                     child_ops["train_label"],
                 ]
-                loss, lr, gn, tr_acc, tr_acc_2_30, tr_acc_4_60, tr_acc_8_120, tr_op, tr_angle_error, tr_cart_error, tr_mae, tr_preds, tr_label = sess.run(
+                loss, lr, gn, tr_acc, tr_acc_5_7_5, tr_acc_1_15, tr_acc_2_30, tr_acc_4_60, tr_acc_8_120, tr_acc_16_240, tr_acc_32_360, tr_op, tr_angle_error, tr_cart_error, tr_mae, tr_preds, tr_label = sess.run(
                     run_ops)
                 global_step = sess.run(child_ops["global_step"])
                 print("---------------global step", global_step, end="\r")
@@ -336,12 +344,20 @@ def train():
                     log_string += " |g|={:<8.4f}".format(gn)
                     log_string += " child_tr_acc={:<3f}".format(
                         tr_acc)
+                    log_string += "\nchild_tr_acc_5mm_7_5deg={:<3f}".format(
+                        tr_acc_5_7_5)
+                    log_string += "\nchild_tr_acc_1cm_15deg={:<3f}".format(
+                        tr_acc_1_15)
                     log_string += "\nchild_tr_acc_2cm_30deg={:<3f}".format(
                         tr_acc_2_30)
                     log_string += "\nchild_tr_acc_4cm_60deg={:<3f}".format(
                         tr_acc_4_60)
                     log_string += "\nchild_tr_acc_8cm_120deg={:<3f}".format(
                         tr_acc_8_120)
+                    log_string += "\nchild_tr_acc_16cm_240deg={:<3f}".format(
+                        tr_acc_16_240)
+                    log_string += "\nchild_tr_acc_32cm_360deg={:<3f}".format(
+                        tr_acc_32_360)
                     log_string += " mins={:<10.2f}".format(
                         float(curr_time - start_time) / 60)
                     if FLAGS.dataset == "stacking":
@@ -358,7 +374,8 @@ def train():
                     else:
                         file_mode = 'w+'
                     with open(FLAGS.output_dir+"/train_metrics.csv", file_mode) as fp:
-                        fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(epoch, global_step, loss, tr_acc, tr_acc_2_30, tr_acc_4_60, tr_acc_8_120, tr_op, tr_angle_error, tr_cart_error, tr_mae))
+                        fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(
+                            epoch, global_step, loss, tr_acc, tr_acc_5_7_5, tr_acc_1_15, tr_acc_2_30, tr_acc_4_60, tr_acc_8_120, tr_acc_16_240, tr_acc_32_360, tr_op, tr_angle_error, tr_cart_error, tr_mae))
 
                 if actual_step % ops["eval_every"] == 0:
                     if (FLAGS.controller_training and
@@ -453,7 +470,11 @@ def train():
 
                     print("Epoch {}: Eval".format(epoch))
                     if FLAGS.child_fixed_arc is None:
+                        print(np.reshape(normal_arc, [-1]))
+                        print(np.reshape(reduce_arc, [-1]))
                         ops["eval_func"](sess, "valid")
+                    print(np.reshape(normal_arc, [-1]))
+                    print(np.reshape(reduce_arc, [-1]))
                     ops["eval_func"](sess, "test")
 
                 if epoch >= FLAGS.num_epochs:
