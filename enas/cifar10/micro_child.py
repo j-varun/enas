@@ -936,7 +936,7 @@ class MicroChild(Model):
         else:
             file_mode = 'w+'
         with open(csvfile, file_mode) as fp:
-            fp.write("{}, {}, {}, {}, {}, {}, {}, {}\n".format(total_acc, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_mse, total_mae, total_angle_error, total_cart_error))
+            fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(total_acc, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_mse, total_mae, total_angle_error, total_cart_error))
 
     # override
     def _build_train(self):
@@ -1330,7 +1330,7 @@ class MicroChild(Model):
         if self.fixed_arc is None:
             sample_arc = controller_model.sample_arc
             normal_arc, reduce_arc = sample_arc
-            self.print_arc = tf.Print(tf.zeros([1]), [normal_arc, reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
+            # self.print_arc = tf.Print([0], [normal_arc, reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
 
             if verbose:
                 normal_arc = tf.Print(normal_arc, [normal_arc, reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
