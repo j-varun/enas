@@ -275,10 +275,23 @@ class CostarBlockStackingSequence(Sequence):
 
         self.blend = blend_previous_goal_images
         self.estimated_time_steps_per_example = estimated_time_steps_per_example
+        if self.inference_mode is True:
+            self.list_example_filenames = inference_mode_gen(self.list_example_filenames)
         # if crop_shape is None:
         #     # height width 3
         #     crop_shape = (224, 224, 3)
         # self.crop_shape = crop_shape
+
+    def inference_mode_gen(file_names):
+        file_list_updated = []
+        # print(len(file_names))
+        for f_name in file_names:
+            with h5py.File(f_name, 'r') as data:
+                file_len = len(data['gripper_action_goal_idx']) - 1
+                # print(file_len)
+                list_id = [f_name] * file_len
+            file_list_updated = file_list_updated + list_id
+        return file_list_updated
 
     def __len__(self):
         """Denotes the number of batches per epoch
@@ -664,18 +677,6 @@ def block_stacking_generator(sequence):
         yield batch
 
 
-def inference_mode_gen(file_names):
-    file_list_updated = []
-    # print(len(file_names))
-    for f_name in file_names:
-        with h5py.File(f_name, 'r') as data:
-            file_len = len(data['gripper_action_goal_idx']) - 1
-            # print(file_len)
-            list_id = [f_name] * file_len
-        file_list_updated = file_list_updated + list_id
-    return file_list_updated
-
-
 if __name__ == "__main__":
     visualize = False
     output_shape = (224, 224, 3)
@@ -683,7 +684,7 @@ if __name__ == "__main__":
     tf.enable_eager_execution()
     filenames = glob.glob(os.path.expanduser('~/.keras/datasets/costar_block_stacking_dataset_v0.3/*success.h5f'))
     # print(filenames)
-    filenames_new = inference_mode_gen(filenames)
+    # filenames_new = inference_mode_gen(filenames)
     training_generator = CostarBlockStackingSequence(
         filenames_new, batch_size=1, verbose=1,
         output_shape=output_shape,
