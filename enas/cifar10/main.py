@@ -470,11 +470,11 @@ def train():
 
                     print("Epoch {}: Eval".format(epoch))
                     if FLAGS.child_fixed_arc is None:
-                        print(np.reshape(normal_arc, [-1]))
-                        print(np.reshape(reduce_arc, [-1]))
+                        # print(np.reshape(normal_arc, [-1]))
+                        # print(np.reshape(reduce_arc, [-1]))
                         ops["eval_func"](sess, "valid")
-                    print(np.reshape(normal_arc, [-1]))
-                    print(np.reshape(reduce_arc, [-1]))
+                    # print(np.reshape(normal_arc, [-1]))
+                    # print(np.reshape(reduce_arc, [-1]))
                     ops["eval_func"](sess, "test")
 
                 if epoch >= FLAGS.num_epochs:

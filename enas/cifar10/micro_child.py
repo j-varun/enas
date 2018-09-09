@@ -928,7 +928,8 @@ class MicroChild(Model):
         else:
             file_mode = 'w+'
         with open(csvfile, file_mode) as fp:
-            fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(total_acc, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_mse, total_mae, total_angle_error, total_cart_error))
+            fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(
+                total_acc, total_acc_5mm_7_5deg, total_acc_1cm_15deg, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_acc_16cm_240deg, total_acc_32cm_360deg, total_mse, total_mae, total_angle_error, total_cart_error))
 
     # override
     def _build_train(self):
@@ -1079,7 +1080,7 @@ class MicroChild(Model):
 
                 self.valid_acc_1cm_15deg = grasp_metrics.grasp_acc_1cm_15deg(
                     self.y_valid, self.valid_preds)
-                self.valid_acc_1cm_15deg = tf.reduce_mean(self.valid_acc_1cm_15deg)
+                self.valid_acc_1cm_15deg = tf.reduce_sum(self.valid_acc_1cm_15deg)
 
                 self.valid_acc_2cm_30deg = grasp_metrics.grasp_acc_2cm_30deg(
                     self.y_valid, self.valid_preds)
@@ -1095,11 +1096,11 @@ class MicroChild(Model):
 
                 self.valid_acc_16cm_240deg = grasp_metrics.grasp_acc_16cm_240deg(
                     self.y_valid, self.valid_preds)
-                self.valid_acc_16cm_240deg = tf.reduce_mean(self.valid_acc_16cm_240deg)
+                self.valid_acc_16cm_240deg = tf.reduce_sum(self.valid_acc_16cm_240deg)
 
                 self.valid_acc_32cm_360deg = grasp_metrics.grasp_acc_32cm_360deg(
                     self.y_valid, self.valid_preds)
-                self.valid_acc_32cm_360deg = tf.reduce_mean(self.valid_acc_32cm_360deg)
+                self.valid_acc_32cm_360deg = tf.reduce_sum(self.valid_acc_32cm_360deg)
 
                 self.valid_loss = tf.reduce_mean(tf.losses.mean_squared_error(
                     labels=self.y_valid, predictions=self.valid_preds))
@@ -1142,11 +1143,11 @@ class MicroChild(Model):
 
             self.test_acc_5mm_7_5deg = grasp_metrics.grasp_acc_5mm_7_5deg(
                 self.y_test, self.test_preds)
-            self.test_acc_5mm_7_5deg = tf.reduce_mean(self.test_acc_5mm_7_5deg)
+            self.test_acc_5mm_7_5deg = tf.reduce_sum(self.test_acc_5mm_7_5deg)
 
             self.test_acc_1cm_15deg = grasp_metrics.grasp_acc_1cm_15deg(
                 self.y_test, self.test_preds)
-            self.test_acc_1cm_15deg = tf.reduce_mean(self.test_acc_1cm_15deg)
+            self.test_acc_1cm_15deg = tf.reduce_sum(self.test_acc_1cm_15deg)
 
             self.test_acc_2cm_30deg = grasp_metrics.grasp_acc_2cm_30deg(
                     self.y_test, self.test_preds)
@@ -1266,11 +1267,11 @@ class MicroChild(Model):
 
             self.valid_shuffle_acc_5mm_7_5deg = grasp_metrics.grasp_acc_5mm_7_5deg(
                 self.y_valid_shuffle, self.valid_shuffle_preds)
-            self.valid_shuffle_acc_5mm_7_5deg = tf.reduce_mean(self.valid_shuffle_acc_5mm_7_5deg)
+            self.valid_shuffle_acc_5mm_7_5deg = tf.reduce_sum(self.valid_shuffle_acc_5mm_7_5deg)
 
             self.valid_shuffle_acc_1cm_15deg = grasp_metrics.grasp_acc_1cm_15deg(
                 self.y_valid_shuffle, self.valid_shuffle_preds)
-            self.valid_shuffle_acc_1cm_15deg = tf.reduce_mean(self.valid_shuffle_acc_1cm_15deg)
+            self.valid_shuffle_acc_1cm_15deg = tf.reduce_sum(self.valid_shuffle_acc_1cm_15deg)
 
             self.valid_shuffle_acc_2cm_30deg = grasp_metrics.grasp_acc_2cm_30deg(
                     self.y_valid_shuffle, self.valid_shuffle_preds)
@@ -1286,11 +1287,11 @@ class MicroChild(Model):
 
             self.valid_shuffle_acc_16cm_240deg = grasp_metrics.grasp_acc_16cm_240deg(
                 self.y_valid_shuffle, self.valid_shuffle_preds)
-            self.valid_shuffle_acc_16cm_240deg = tf.reduce_mean(self.valid_shuffle_acc_16cm_240deg)
+            self.valid_shuffle_acc_16cm_240deg = tf.reduce_sum(self.valid_shuffle_acc_16cm_240deg)
 
             self.valid_shuffle_acc_32cm_360deg = grasp_metrics.grasp_acc_32cm_360deg(
                 self.y_valid_shuffle, self.valid_shuffle_preds)
-            self.valid_shuffle_acc_32cm_360deg = tf.reduce_mean(self.valid_shuffle_acc_32cm_360deg)
+            self.valid_shuffle_acc_32cm_360deg = tf.reduce_sum(self.valid_shuffle_acc_32cm_360deg)
 
             self.valid_shuffle_loss = tf.reduce_mean(tf.losses.mean_squared_error(
                     labels=self.y_valid_shuffle, predictions=self.valid_shuffle_preds))

@@ -3,14 +3,13 @@
 export PYTHONPATH="$(pwd)"
 
 
-fixed_arc="0 1 1 0 1 4 0 0"
-fixed_arc="$fixed_arc 0 1 1 2 0 0 0 2"
+fixed_arc="1 1 1 1 2 3 0 4 0 3 0 1"
+fixed_arc="$fixed_arc 0 1 1 0 0 4 2 4 0 2 2 4"
 
 python enas/cifar10/main.py \
   --data_format="NHWC" \
   --search_for="micro" \
   --reset_output_dir \
-  --data_path="data/cifar10" \
   --output_dir="stacking_outputs_rotation_final" \
   --batch_size=32 \
   --num_epochs=630 \
@@ -21,7 +20,7 @@ python enas/cifar10/main.py \
   --child_num_layers=10 \
   --child_out_filters=36 \
   --child_num_branches=5 \
-  --child_num_cells=5 \
+  --child_num_cells=3 \
   --child_keep_prob=0.80 \
   --child_drop_path_keep_prob=0.60 \
   --child_l2_reg=2e-4 \
@@ -40,10 +39,9 @@ python enas/cifar10/main.py \
   --controller_lr=0.001 \
   --controller_tanh_constant=1.50 \
   --controller_op_tanh_reduce=2.5 \
-  --data_path="~/.keras/datasets/costar_block_stacking_dataset_v0.2/*success.h5f" \
   --dataset="stacking" \
-  --height_img 96 \
-  --width_img 96 \
+  --height_img 64 \
+  --width_img 64 \
   --rotation_only \
   --max_loss=2 \
   "$@"
