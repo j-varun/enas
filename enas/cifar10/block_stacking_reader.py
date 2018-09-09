@@ -218,7 +218,7 @@ class CostarBlockStackingSequence(Sequence):
                  random_shift=False,
                  output_shape=None,
                  blend_previous_goal_images=False,
-                 estimated_time_steps_per_example=250, verbose=0):
+                 estimated_time_steps_per_example=250, verbose=0, inference_mode=False):
         '''Initialization
 
         # Arguments
@@ -270,6 +270,8 @@ class CostarBlockStackingSequence(Sequence):
         self.total_actions_available = total_actions_available
         self.random_augmentation = random_augmentation
         self.random_shift = random_shift
+        self.inference_mode = inference_mode
+        self.infer_index = 0
 
         self.blend = blend_previous_goal_images
         self.estimated_time_steps_per_example = estimated_time_steps_per_example
@@ -293,7 +295,8 @@ class CostarBlockStackingSequence(Sequence):
         # Find list of example_filenames
         list_example_filenames_temp = [self.list_example_filenames[k] for k in indexes]
         # Generate data
-        X, y = self.__data_generation(list_example_filenames_temp)
+        self.infer_index = self.infer_index + 1
+        X, y = self.__data_generation(list_example_filenames_temp, self.infer_index)
 
         return X, y
 
@@ -315,13 +318,13 @@ class CostarBlockStackingSequence(Sequence):
         if self.shuffle is True:
             self.random_state.shuffle(self.indexes)
 
-    def __data_generation(self, list_Ids):
+    def __data_generation(self, list_Ids, images_index):
         """ Generates data containing batch_size samples
 
         # Arguments
 
         list_Ids: a list of file paths to be read
-        """
+        """ 
 
         def JpegToNumpy(jpeg):
             stream = io.BytesIO(jpeg)
@@ -397,7 +400,7 @@ class CostarBlockStackingSequence(Sequence):
                         if 'success' in example_filename:
                             label_constant = 1
                         else:
-                            label_constal = 0
+                            label_constant = 0
                         stacking_reward = np.arange(len(all_goal_ids))
                         stacking_reward = 0.999 * stacking_reward * label_constant
                         # print("reward estimates", stacking_reward)
@@ -410,10 +413,23 @@ class CostarBlockStackingSequence(Sequence):
                         else:
                             raise NotImplementedError
                         indices = [0] + list(image_indices)
+
                         if self.blend:
                             img_indices = get_past_goal_indices(image_indices, all_goal_ids, filename=example_filename)
                         else:
                             img_indices = indices
+                        if self.inference_mode is True:
+                            if images_index >= len(data['gripper_action_goal_idx']):
+                                self.infer_index = 1
+                                image_idx = 1
+                                # image_idx = (images_index % (len(data['gripper_action_goal_idx']) - 1)) + 1
+                            else:
+                                image_idx = images_index
+
+                            img_indices = [0, image_idx]
+                            # print("image_index", image_idx)
+                            # print("image_true", images_index, len(data['gripper_action_goal_idx']))
+                            # print("new_indices-----", image_idx)
                         if self.verbose > 0:
                             print("Indices --", indices)
                             print('img_indices: ' + str(img_indices))
@@ -648,20 +664,36 @@ def block_stacking_generator(sequence):
         step += 1
         yield batch
 
+
+def inference_mode_gen(file_names):
+    file_list_updated = []
+    # print(len(file_names))
+    for f_name in file_names:
+        with h5py.File(f_name, 'r') as data:
+            file_len = len(data['gripper_action_goal_idx']) - 1
+            # print(file_len)
+            list_id = [f_name] * file_len
+        file_list_updated = file_list_updated + list_id
+    return file_list_updated
+
+
 if __name__ == "__main__":
-    visualize = True
+    visualize = False
     output_shape = (224, 224, 3)
     # output_shape = None
     tf.enable_eager_execution()
     filenames = glob.glob(os.path.expanduser('~/.keras/datasets/costar_block_stacking_dataset_v0.3/*success.h5f'))
     # print(filenames)
+    filenames_new = inference_mode_gen(filenames)
     training_generator = CostarBlockStackingSequence(
-        filenames, batch_size=1, verbose=1,
+        filenames_new, batch_size=1, verbose=1,
         output_shape=output_shape,
         label_features_to_extract='grasp_goal_xyz_aaxyz_nsc_8',
         data_features_to_extract=['current_xyz_aaxyz_nsc_8'],
-        blend_previous_goal_images=True)
+        blend_previous_goal_images=False, inference_mode=True)
     num_batches = len(training_generator)
+    print(num_batches)
+    print(len(filenames_new))
 
     bsg = block_stacking_generator(training_generator)
     iter(bsg)
@@ -686,18 +718,18 @@ if __name__ == "__main__":
             # one window to be closed before showing the next
             # plt.show()
     # a = next(training_generator)
-    enqueuer = OrderedEnqueuer(
-                    training_generator,
-                    use_multiprocessing=False,
-                    shuffle=True)
-    enqueuer.start(workers=1, max_queue_size=1)
-    generator = iter(enqueuer.get())
-    print("-------------------")
-    generator_ouput = next(generator)
-    print("-------------------op")
-    x, y = generator_ouput
-    print("x-shape-----------", x.shape)
-    print("y-shape---------",y.shape)
+    # enqueuer = OrderedEnqueuer(
+    #                 training_generator,
+    #                 use_multiprocessing=False,
+    #                 shuffle=True)
+    # enqueuer.start(workers=1, max_queue_size=1)
+    # generator = iter(enqueuer.get())
+    # print("-------------------")
+    # generator_ouput = next(generator)
+    # print("-------------------op")
+    # x, y = generator_ouput
+    # print("x-shape-----------", x.shape)
+    # print("y-shape---------",y.shape)
 
     # X,y=training_generator.__getitem__(1)
     #print(X.keys())
