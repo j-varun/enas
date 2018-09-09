@@ -1163,11 +1163,11 @@ class MicroChild(Model):
 
             self.test_acc_16cm_240deg = grasp_metrics.grasp_acc_16cm_240deg(
                 self.y_test, self.test_preds)
-            self.test_acc_16cm_240deg = tf.reduce_mean(self.test_acc_16cm_240deg)
+            self.test_acc_16cm_240deg = tf.reduce_sum(self.test_acc_16cm_240deg)
 
             self.test_acc_32cm_360deg = grasp_metrics.grasp_acc_32cm_360deg(
                 self.y_test, self.test_preds)
-            self.test_acc_32cm_360deg = tf.reduce_mean(self.test_acc_32cm_360deg)
+            self.test_acc_32cm_360deg = tf.reduce_sum(self.test_acc_32cm_360deg)
 
             self.test_cart_error = grasp_metrics.cart_error(
                 self.y_test, self.test_preds)
