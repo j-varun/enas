@@ -332,11 +332,13 @@ class MicroChild(Model):
                     x_1 = tf.nn.conv2d(
                         images[:, :, :, :3], w_1, [1, 1, 1, 1], "SAME")
                     x_1 = norm(x_1, is_training=is_training, data_format=self.data_format, norm_type="batch", name="x_1_norm")
+                    x_1 = tf.nn.elu(x_1, name='elu_x_1')
                     w_2 = create_weight(
                         "w_2", [3, 3, 3, 64])
                     x_2 = tf.nn.conv2d(
                         images[:, :, :, 3:6], w_2, [1, 1, 1, 1], "SAME")
                     x_2 = norm(x_2, is_training=is_training, data_format=self.data_format, norm_type="batch", name="x_2_norm")
+                    x_2 = tf.nn.elu(x_2, name='elu_x_2')
                     x_3 = tf.layers.dense(images[:, :, :, 6:], units=2048, activation=tf.nn.relu)
                     # dropout
                     x_3 = tf.nn.dropout(x_3, 0.25)
