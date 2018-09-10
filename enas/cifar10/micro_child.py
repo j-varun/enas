@@ -353,7 +353,7 @@ class MicroChild(Model):
                 print("shape after concat", x.shape)
 
             # the first two inputs
-            if self.dataset == "stacking":
+            if self.dataset == "stacking" and self.use_root is True:
                 input_channels = self._get_C(x)
             else:
                 input_channels = self._get_C(images)
