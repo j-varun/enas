@@ -933,14 +933,14 @@ class MicroChild(Model):
         normal_arc = []
         reduce_arc = []
         for batch_id in range(num_batches):
-            if batch_id == 0:
-                if feed_dict is None:
-                    feed_dict = {}
-                # print the arc if we're on batch 0
-                feed_dict['print_arc'] = self.print_arc
-            elif batch_id == 1 and feed_dict is not None and 'print_arc' in feed_dict:
-                # remove the print arc tensor if we're on batch 1
-                feed_dict.pop('print_arc', None)
+            # if batch_id == 0:
+            #     if feed_dict is None:
+            #         feed_dict = {}
+            #     # print the arc if we're on batch 0
+            #     feed_dict['print_arc'] = self.print_arc
+            # elif batch_id == 1 and feed_dict is not None and 'print_arc' in feed_dict:
+            #     # remove the print arc tensor if we're on batch 1
+            #     feed_dict.pop('print_arc', None)
             if self.fixed_arc is None:
                 acc, acc_5_7_5, acc_1_15, acc_2_30, acc_4_60, acc_8_120, acc_16_240, acc_32_360, cart_error, angle_error, mse, mae = sess.run(
                     [acc_op, acc_op_5mm_7_5deg, acc_op_1cm_15deg, acc_op_2_30, acc_op_4_60, acc_op_8_120, acc_op_16cm_240deg, acc_op_32cm_360deg, cart_op, ang_er_op, mse_op, mae_op], feed_dict=feed_dict)
