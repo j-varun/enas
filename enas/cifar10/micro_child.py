@@ -63,6 +63,8 @@ class MicroChild(Model):
                  translation_only=False,
                  rotation_only=False,
                  stacking_reward=False,
+                 use_root=False,
+                 one_hot_encoding=False,
                  dataset="cifar",
                  data_base_path="",
                  output_dir="",
@@ -95,6 +97,8 @@ class MicroChild(Model):
             rotation_only=rotation_only,
             stacking_reward=stacking_reward,
             data_base_path=data_base_path,
+            use_root=use_root,
+            one_hot_encoding=one_hot_encoding,
             dataset=dataset)
 
         if self.data_format == "NHWC":
@@ -106,6 +110,7 @@ class MicroChild(Model):
                 "Unknown data_format '{0}'".format(self.data_format))
 
         self.use_aux_heads = use_aux_heads
+        self.use_root = use_root
         self.num_epochs = num_epochs
         self.num_train_steps = self.num_epochs * self.num_train_batches
         self.drop_path_keep_prob = drop_path_keep_prob
@@ -124,6 +129,7 @@ class MicroChild(Model):
         self.data_base_path = data_base_path
         self.verbose = 0
         self.output_dir = output_dir
+        self.one_hot_encoding = one_hot_encoding
 
         self.global_step = tf.Variable(
             0, dtype=tf.int32, trainable=False, name="global_step")
@@ -285,6 +291,29 @@ class MicroChild(Model):
                         y, is_training=is_training, data_format=self.data_format, norm_type="batch")
         return [x, y]
 
+    def concat_images_with_tiled_vector(images, vector):
+        """Combine a set of images with a vector, tiling the vector at each pixel in the images and concatenating on the channel axis.
+
+        # Params
+
+            images: list of images with the same dimensions
+            vector: vector to tile on each image. If you have
+                more than one vector, simply concatenate them
+                all before calling this function.
+
+        # Returns
+
+        """
+        with tf.variable_scope('concat_images_with_tiled_vector'):
+            if not isinstance(images, list):
+                images = [images]
+            image_shape = K.int_shape(images[0])
+            tiled_vector = tile_vector_as_image_channels(vector, image_shape)
+            images.append(tiled_vector)
+            combined = K.concatenate(images)
+
+            return combined
+
     def _model(self, images, is_training, reuse=False):
         """Compute the logits given the images."""
 
@@ -293,16 +322,54 @@ class MicroChild(Model):
         #     is_training = True
 
         with tf.variable_scope(self.name, reuse=reuse):
+            # Conv for 2 seperate stacking images
+            if self.dataset == "stacking" and self.use_root is True:
+                # input_channels_1 = self._get_C(images[0])
+                # input_channels_2 = self._get_C(images[1])
+                with tf.variable_scope("init_root"):
+                    w_1 = create_weight(
+                        "w_1", [3, 3, 3, 64])
+                    x_1 = tf.nn.conv2d(
+                        images[:, :, :, :3], w_1, [1, 1, 1, 1], "SAME")
+                    x_1 = norm(x_1, is_training=is_training, data_format=self.data_format, norm_type="batch", name="x_1_norm")
+                    x_1 = tf.nn.elu(x_1, name='elu_x_1')
+                    w_2 = create_weight(
+                        "w_2", [3, 3, 3, 64])
+                    x_2 = tf.nn.conv2d(
+                        images[:, :, :, 3:6], w_2, [1, 1, 1, 1], "SAME")
+                    x_2 = norm(x_2, is_training=is_training, data_format=self.data_format, norm_type="batch", name="x_2_norm")
+                    x_2 = tf.nn.elu(x_2, name='elu_x_2')
+                    x_3 = tf.layers.dense(images[:, :, :, 6:], units=2048, activation=tf.nn.relu)
+                    # dropout
+                    x_3 = tf.nn.dropout(x_3, 0.25)
+                    # x_3 = tf.layers.dense(x_3, units=64, activation=tf.nn.relu)
+
+                    # dense_layer
+                # tiling of images
+                print("shape of x_1--", x_1.shape)
+                image = [x_1, x_2]
+                print("shape of x_3--", len(image))
+                x = tf.concat([x_1, x_2, x_3], axis=-1)
+                print("shape after concat", x.shape)
+
             # the first two inputs
-            input_channels = self._get_C(images)
+            if self.dataset == "stacking":
+                input_channels = self._get_C(x)
+            else:
+                input_channels = self._get_C(images)
             print("channels--------------------------", input_channels)
             with tf.variable_scope("stem_conv"):
                 w = create_weight(
                     "w", [input_channels, input_channels, input_channels,
                           self.out_filters * 3])
-                x = tf.nn.conv2d(
-                    images, w, [1, 1, 1, 1], "SAME",
-                    data_format=self.data_format)
+                if self.use_root is True:
+                    x = tf.nn.conv2d(
+                        x, w, [1, 1, 1, 1], "SAME",
+                        data_format=self.data_format)
+                else:
+                    x = tf.nn.conv2d(
+                        images, w, [1, 1, 1, 1], "SAME",
+                        data_format=self.data_format)
                 x = norm(x, is_training=is_training, data_format=self.data_format, norm_type="batch")
             if self.data_format == "NHWC":
                 split_axis = 3
@@ -936,7 +1003,8 @@ class MicroChild(Model):
         else:
             file_mode = 'w+'
         with open(csvfile, file_mode) as fp:
-            fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(total_acc, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_mse, total_mae, total_angle_error, total_cart_error))
+            fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(
+                total_acc, total_acc_5mm_7_5deg, total_acc_1cm_15deg, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_acc_16cm_240deg, total_acc_32cm_360deg, total_mse, total_mae, total_angle_error, total_cart_error))
 
     # override
     def _build_train(self):
@@ -1087,7 +1155,7 @@ class MicroChild(Model):
 
                 self.valid_acc_1cm_15deg = grasp_metrics.grasp_acc_1cm_15deg(
                     self.y_valid, self.valid_preds)
-                self.valid_acc_1cm_15deg = tf.reduce_mean(self.valid_acc_1cm_15deg)
+                self.valid_acc_1cm_15deg = tf.reduce_sum(self.valid_acc_1cm_15deg)
 
                 self.valid_acc_2cm_30deg = grasp_metrics.grasp_acc_2cm_30deg(
                     self.y_valid, self.valid_preds)
@@ -1103,11 +1171,11 @@ class MicroChild(Model):
 
                 self.valid_acc_16cm_240deg = grasp_metrics.grasp_acc_16cm_240deg(
                     self.y_valid, self.valid_preds)
-                self.valid_acc_16cm_240deg = tf.reduce_mean(self.valid_acc_16cm_240deg)
+                self.valid_acc_16cm_240deg = tf.reduce_sum(self.valid_acc_16cm_240deg)
 
                 self.valid_acc_32cm_360deg = grasp_metrics.grasp_acc_32cm_360deg(
                     self.y_valid, self.valid_preds)
-                self.valid_acc_32cm_360deg = tf.reduce_mean(self.valid_acc_32cm_360deg)
+                self.valid_acc_32cm_360deg = tf.reduce_sum(self.valid_acc_32cm_360deg)
 
                 self.valid_loss = tf.reduce_mean(tf.losses.mean_squared_error(
                     labels=self.y_valid, predictions=self.valid_preds))
@@ -1150,11 +1218,11 @@ class MicroChild(Model):
 
             self.test_acc_5mm_7_5deg = grasp_metrics.grasp_acc_5mm_7_5deg(
                 self.y_test, self.test_preds)
-            self.test_acc_5mm_7_5deg = tf.reduce_mean(self.test_acc_5mm_7_5deg)
+            self.test_acc_5mm_7_5deg = tf.reduce_sum(self.test_acc_5mm_7_5deg)
 
             self.test_acc_1cm_15deg = grasp_metrics.grasp_acc_1cm_15deg(
                 self.y_test, self.test_preds)
-            self.test_acc_1cm_15deg = tf.reduce_mean(self.test_acc_1cm_15deg)
+            self.test_acc_1cm_15deg = tf.reduce_sum(self.test_acc_1cm_15deg)
 
             self.test_acc_2cm_30deg = grasp_metrics.grasp_acc_2cm_30deg(
                     self.y_test, self.test_preds)
@@ -1170,11 +1238,11 @@ class MicroChild(Model):
 
             self.test_acc_16cm_240deg = grasp_metrics.grasp_acc_16cm_240deg(
                 self.y_test, self.test_preds)
-            self.test_acc_16cm_240deg = tf.reduce_mean(self.test_acc_16cm_240deg)
+            self.test_acc_16cm_240deg = tf.reduce_sum(self.test_acc_16cm_240deg)
 
             self.test_acc_32cm_360deg = grasp_metrics.grasp_acc_32cm_360deg(
                 self.y_test, self.test_preds)
-            self.test_acc_32cm_360deg = tf.reduce_mean(self.test_acc_32cm_360deg)
+            self.test_acc_32cm_360deg = tf.reduce_sum(self.test_acc_32cm_360deg)
 
             self.test_cart_error = grasp_metrics.cart_error(
                 self.y_test, self.test_preds)
@@ -1274,11 +1342,11 @@ class MicroChild(Model):
 
             self.valid_shuffle_acc_5mm_7_5deg = grasp_metrics.grasp_acc_5mm_7_5deg(
                 self.y_valid_shuffle, self.valid_shuffle_preds)
-            self.valid_shuffle_acc_5mm_7_5deg = tf.reduce_mean(self.valid_shuffle_acc_5mm_7_5deg)
+            self.valid_shuffle_acc_5mm_7_5deg = tf.reduce_sum(self.valid_shuffle_acc_5mm_7_5deg)
 
             self.valid_shuffle_acc_1cm_15deg = grasp_metrics.grasp_acc_1cm_15deg(
                 self.y_valid_shuffle, self.valid_shuffle_preds)
-            self.valid_shuffle_acc_1cm_15deg = tf.reduce_mean(self.valid_shuffle_acc_1cm_15deg)
+            self.valid_shuffle_acc_1cm_15deg = tf.reduce_sum(self.valid_shuffle_acc_1cm_15deg)
 
             self.valid_shuffle_acc_2cm_30deg = grasp_metrics.grasp_acc_2cm_30deg(
                     self.y_valid_shuffle, self.valid_shuffle_preds)
@@ -1294,11 +1362,11 @@ class MicroChild(Model):
 
             self.valid_shuffle_acc_16cm_240deg = grasp_metrics.grasp_acc_16cm_240deg(
                 self.y_valid_shuffle, self.valid_shuffle_preds)
-            self.valid_shuffle_acc_16cm_240deg = tf.reduce_mean(self.valid_shuffle_acc_16cm_240deg)
+            self.valid_shuffle_acc_16cm_240deg = tf.reduce_sum(self.valid_shuffle_acc_16cm_240deg)
 
             self.valid_shuffle_acc_32cm_360deg = grasp_metrics.grasp_acc_32cm_360deg(
                 self.y_valid_shuffle, self.valid_shuffle_preds)
-            self.valid_shuffle_acc_32cm_360deg = tf.reduce_mean(self.valid_shuffle_acc_32cm_360deg)
+            self.valid_shuffle_acc_32cm_360deg = tf.reduce_sum(self.valid_shuffle_acc_32cm_360deg)
 
             self.valid_shuffle_loss = tf.reduce_mean(tf.losses.mean_squared_error(
                     labels=self.y_valid_shuffle, predictions=self.valid_shuffle_preds))

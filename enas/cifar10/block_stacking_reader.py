@@ -218,7 +218,7 @@ class CostarBlockStackingSequence(Sequence):
                  random_shift=False,
                  output_shape=None,
                  blend_previous_goal_images=False,
-                 estimated_time_steps_per_example=250, verbose=0, inference_mode=False):
+                 estimated_time_steps_per_example=250, verbose=0, inference_mode=False, one_hot_encoding=False):
         '''Initialization
 
         # Arguments
@@ -242,6 +242,7 @@ class CostarBlockStackingSequence(Sequence):
             so we simply sample in proportion to an estimated number of images per example.
             Due to random sampling, there is no guarantee that every image will be visited once!
             However, the images can be visited in a fixed order, particularly when is_training=False.
+        one_hot_encoding flag triggers one hot encoding and thus numbers at the end of labels might not correspond to the actual size.
 
         # Explanation of abbreviations:
 
@@ -272,13 +273,27 @@ class CostarBlockStackingSequence(Sequence):
         self.random_shift = random_shift
         self.inference_mode = inference_mode
         self.infer_index = 0
+        self.one_hot_encoding = one_hot_encoding
 
         self.blend = blend_previous_goal_images
         self.estimated_time_steps_per_example = estimated_time_steps_per_example
+        if self.inference_mode is True:
+            self.list_example_filenames = inference_mode_gen(self.list_example_filenames)
         # if crop_shape is None:
         #     # height width 3
         #     crop_shape = (224, 224, 3)
         # self.crop_shape = crop_shape
+
+    def inference_mode_gen(file_names):
+        file_list_updated = []
+        # print(len(file_names))
+        for f_name in file_names:
+            with h5py.File(f_name, 'r') as data:
+                file_len = len(data['gripper_action_goal_idx']) - 1
+                # print(file_len)
+                list_id = [f_name] * file_len
+            file_list_updated = file_list_updated + list_id
+        return file_list_updated
 
     def __len__(self):
         """Denotes the number of batches per epoch
@@ -477,7 +492,7 @@ class CostarBlockStackingSequence(Sequence):
                                 ('image_0_image_n_vec_xyz_aaxyz_nsc_15' in self.data_features_to_extract or
                                  'image_0_image_n_vec_xyz_nxygrid_12' in self.data_features_to_extract or
                                  'image_0_image_n_vec_xyz_aaxyz_nsc_nxygrid_17' in self.data_features_to_extract or
-                                 'image_0_image_n_vec_0_vec_n_xyz_aaxyz_nsc_nxygrid_25' in self.data_features_to_extract)):
+                                 'image_0_image_n_vec_0_vec_n_xyz_aaxyz_nsc_nxygrid_25' in self.data_features_to_extract) and not self.one_hot_encoding):
                             # normalized floating point encoding of action vector
                             # from 0 to 1 in a single float which still becomes
                             # a 2d array of dimension batch_size x 1
@@ -661,20 +676,11 @@ def block_stacking_generator(sequence):
             step = 0
             sequence.on_epoch_end()
         batch = sequence.__getitem__(step)
+        print(np.array(batch).shape)
+        print(np.array(batch[0][0]).shape)
+        exit()
         step += 1
         yield batch
-
-
-def inference_mode_gen(file_names):
-    file_list_updated = []
-    # print(len(file_names))
-    for f_name in file_names:
-        with h5py.File(f_name, 'r') as data:
-            file_len = len(data['gripper_action_goal_idx']) - 1
-            # print(file_len)
-            list_id = [f_name] * file_len
-        file_list_updated = file_list_updated + list_id
-    return file_list_updated
 
 
 if __name__ == "__main__":
@@ -682,18 +688,18 @@ if __name__ == "__main__":
     output_shape = (224, 224, 3)
     # output_shape = None
     tf.enable_eager_execution()
-    filenames = glob.glob(os.path.expanduser('~/.keras/datasets/costar_block_stacking_dataset_v0.3/*success.h5f'))
+    filenames = glob.glob(os.path.expanduser(r'C:\Users\Varun\JHU\LAB\Projects\costar_task_planning_stacking_dataset_v0.1\*success.h5f'))
     # print(filenames)
-    filenames_new = inference_mode_gen(filenames)
+    # filenames_new = inference_mode_gen(filenames)
     training_generator = CostarBlockStackingSequence(
-        filenames_new, batch_size=1, verbose=1,
+        filenames, batch_size=1, verbose=1,
         output_shape=output_shape,
         label_features_to_extract='grasp_goal_xyz_aaxyz_nsc_8',
         data_features_to_extract=['current_xyz_aaxyz_nsc_8'],
-        blend_previous_goal_images=False, inference_mode=True)
+        blend_previous_goal_images=False, inference_mode=False)
     num_batches = len(training_generator)
     print(num_batches)
-    print(len(filenames_new))
+    # print(len(filenames_new))
 
     bsg = block_stacking_generator(training_generator)
     iter(bsg)
