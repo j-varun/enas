@@ -339,7 +339,7 @@ class CostarBlockStackingSequence(Sequence):
         # Arguments
 
         list_Ids: a list of file paths to be read
-        """ 
+        """
 
         def JpegToNumpy(jpeg):
             stream = io.BytesIO(jpeg)
@@ -401,7 +401,7 @@ class CostarBlockStackingSequence(Sequence):
                     with h5py.File(example_filename, 'r') as data:
                         if 'gripper_action_goal_idx' not in data or 'gripper_action_label' not in data:
                             raise ValueError('block_stacking_reader.py: You need to run preprocessing before this will work! \n' +
-                                             '    python2 ctp_integration/scripts/view_convert_dataset.py --path ~/.keras/datasets/costar_block_stacking_dataset_v0.3 --preprocess_inplace gripper_action --write'
+                                             '    python2 ctp_integration/scripts/view_convert_dataset.py --path ~/.keras/datasets/costar_block_stacking_dataset_v0.4 --preprocess_inplace gripper_action --write'
                                              '\n File with error: ' + str(example_filename))
                         # indices = [0]
                         # len of goal indexes is the same as the number of images, so this saves loading all the images
@@ -688,7 +688,7 @@ if __name__ == "__main__":
     output_shape = (224, 224, 3)
     # output_shape = None
     tf.enable_eager_execution()
-    filenames = glob.glob(os.path.expanduser(r'C:\Users\Varun\JHU\LAB\Projects\costar_task_planning_stacking_dataset_v0.1\*success.h5f'))
+    filenames = glob.glob(os.path.expanduser('~/.keras/datasets/costar_block_stacking_dataset_v0.4/*success.h5f'))
     # print(filenames)
     # filenames_new = inference_mode_gen(filenames)
     training_generator = CostarBlockStackingSequence(
@@ -724,18 +724,18 @@ if __name__ == "__main__":
             # one window to be closed before showing the next
             # plt.show()
     # a = next(training_generator)
-    # enqueuer = OrderedEnqueuer(
-    #                 training_generator,
-    #                 use_multiprocessing=False,
-    #                 shuffle=True)
-    # enqueuer.start(workers=1, max_queue_size=1)
-    # generator = iter(enqueuer.get())
-    # print("-------------------")
-    # generator_ouput = next(generator)
-    # print("-------------------op")
-    # x, y = generator_ouput
-    # print("x-shape-----------", x.shape)
-    # print("y-shape---------",y.shape)
+    enqueuer = OrderedEnqueuer(
+                    training_generator,
+                    use_multiprocessing=False,
+                    shuffle=True)
+    enqueuer.start(workers=1, max_queue_size=1)
+    generator = iter(enqueuer.get())
+    print("-------------------")
+    generator_ouput = next(generator)
+    print("-------------------op")
+    x, y = generator_ouput
+    print("x-shape-----------", x.shape)
+    print("y-shape---------",y.shape)
 
     # X,y=training_generator.__getitem__(1)
     #print(X.keys())
