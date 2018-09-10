@@ -51,6 +51,8 @@ DEFINE_integer("height_img", 32, "")
 DEFINE_integer("width_img", 32, "")
 DEFINE_boolean("regression", False, "Task is regression or classification")
 DEFINE_boolean("translation_only", False, "Translation only case")
+DEFINE_boolean("use_root", False, "Process image and vector and then tile")
+DEFINE_boolean("one_hot_encoding", False, "Use one hot encoding for labels (only for stacking dataset)")
 DEFINE_boolean("rotation_only", False, "Rotation only case")
 DEFINE_boolean("stacking_reward", False, "Train a block stacking critic which estimates the reward of a proposed action based on the current state and command.")
 DEFINE_integer("max_loss", 0, "To set positive reward; for stacking dataset only")
@@ -172,10 +174,12 @@ def get_ops(images, labels):
         translation_only=FLAGS.translation_only,
         rotation_only=FLAGS.rotation_only,
         stacking_reward=FLAGS.stacking_reward,
+        use_root=FLAGS.use_root,
         dataset=FLAGS.dataset,
         data_base_path=FLAGS.data_base_path,
         output_dir=FLAGS.output_dir,
         pool_distance=FLAGS.child_pool_distance,
+        one_hot_encoding=FLAGS.one_hot_encoding,
         random_augmentation=FLAGS.random_augmentation
     )
     if FLAGS.child_fixed_arc is None:

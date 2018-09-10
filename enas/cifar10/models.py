@@ -46,8 +46,10 @@ class Model(object):
                  translation_only=False,
                  rotation_only=False,
                  stacking_reward=False,
+                 use_root=False,
                  dataset="cifar",
                  data_base_path="",
+                 one_hot_encoding=False,
                  random_augmentation=None
                  ):
         """
@@ -83,6 +85,8 @@ class Model(object):
         self.stacking_reward = stacking_reward
         self.random_augmentation = random_augmentation
         self.data_base_path = data_base_path
+        self.use_root = use_root
+        self.one_hot_encoding = one_hot_encoding
 
         self.global_step = None
         self.valid_acc = None
@@ -114,11 +118,11 @@ class Model(object):
                     with open(self.data_base_path + 'costar_block_stacking_v0.3_success_only_test_files.txt', mode='r') as myfile:
                         test_data = myfile.read().splitlines()
                     with open(self.data_base_path + 'costar_block_stacking_v0.3_success_only_val_files.txt', mode='r') as myfile:
-                        validation_data = myfile.read().splitlines()
+                        validation_data = myfile.read().splitlines()     
                     print(train_data)
-                    #train_data = [self.data_base_path + name for name in train_data]
-                    #test_data = [self.data_base_path + name for name in test_data]
-                    #validation_data = [self.data_base_path + name for name in validation_data]
+                    # train_data = [self.data_base_path + name for name in train_data]
+                    # test_data = [self.data_base_path + name for name in test_data]
+                    # validation_data = [self.data_base_path + name for name in validation_data]
                     print(validation_data)
                 # number of images to look at per example
                 # TODO(ahundt) currently there is a bug in one of these calculations, lowering images per example to reduce number of steps per epoch for now.
@@ -156,6 +160,11 @@ class Model(object):
                     self.data_features_len = 25
                     label_features = ['stacking_reward']
                     self.num_classes = 1
+                # elif self.use_root is True:
+                #     data_features = ['current_xyz_aaxyz_nsc_8']
+                #     self.data_features_len = 8
+                #     label_features = ['grasp_goal_xyz_3']
+                #     self.num_classes = 8
                 else:
                     # original input block
                     # data_features = ['image_0_image_n_vec_xyz_aaxyz_nsc_15']
@@ -164,11 +173,13 @@ class Model(object):
                     self.data_features_len = 17
                     label_features = ['grasp_goal_xyz_aaxyz_nsc_8']
                     self.num_classes = 8
+                if self.one_hot_encoding:
+                    self.data_features_len += 40
                 training_generator = CostarBlockStackingSequence(
                     train_data, batch_size=batch_size, verbose=0,
                     label_features_to_extract=label_features,
                     data_features_to_extract=data_features, output_shape=self.image_shape, shuffle=True,
-                    random_augmentation=self.random_augmentation)
+                    random_augmentation=self.random_augmentation, one_hot_encoding=self.one_hot_encoding)
 
                 train_enqueuer = OrderedEnqueuer(
                     training_generator,
@@ -180,9 +191,16 @@ class Model(object):
 
                 train_dataset = Dataset.from_generator(train_generator, (tf.float32, tf.float32), (tf.TensorShape(
                     [None, self.image_shape[0], self.image_shape[1], self.data_features_len]), tf.TensorShape([None, None])))
+                # if self.use_root is True:
+                #     train_dataset = Dataset.from_generator(train_generator, (tf.float32, tf.float32), (tf.TensorShape(
+                #         [None, 2]), tf.TensorShape([None, None])))
                 trainer = train_dataset.make_one_shot_iterator()
                 x_train, y_train = trainer.get_next()
-                print("x shape--------------", x_train.shape)
+                # x_train_list = []
+                # x_train_list[0] = np.reshape(x_train[0][0], [-1, self.image_shape[1], self.image_shape[2], 3])
+                # x_train_list[1] = np.reshape(x_train[0][1], [-1, self.image_shape[1], self.image_shape[2], 3])
+                # x_train_list[2] = np.reshape(x_train[0][2],[-1, ])
+                # print("x shape--------------", x_train.shape)
                 print("batch--------------------------",
                       self.num_train_examples, self.num_train_batches)
                 print("y shape--------------", y_train.shape)
@@ -243,7 +261,7 @@ class Model(object):
                 validation_generator = CostarBlockStackingSequence(
                     validation_data, batch_size=batch_size, verbose=0,
                     label_features_to_extract=label_features,
-                    data_features_to_extract=data_features, output_shape=self.image_shape)
+                    data_features_to_extract=data_features, output_shape=self.image_shape, one_hot_encoding=self.one_hot_encoding)
                 validation_enqueuer = OrderedEnqueuer(
                     validation_generator,
                     use_multiprocessing=False,
@@ -288,7 +306,7 @@ class Model(object):
                 test_generator = CostarBlockStackingSequence(
                     test_data, batch_size=batch_size, verbose=0,
                     label_features_to_extract=label_features,
-                    data_features_to_extract=data_features, output_shape=self.image_shape)
+                    data_features_to_extract=data_features, output_shape=self.image_shape, one_hot_encoding=self.one_hot_encoding)
                 test_enqueuer = OrderedEnqueuer(
                     test_generator,
                     use_multiprocessing=False,
