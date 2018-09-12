@@ -3,15 +3,15 @@
 export PYTHONPATH="$(pwd)"
 
 
-fixed_arc="1 1 1 1 2 3 0 4 0 3 0 1"
-fixed_arc="$fixed_arc 0 1 1 0 0 4 2 4 0 2 2 4"
+fixed_arc="0 1 0 3 0 0 0 3 3 4 2 1"
+fixed_arc="$fixed_arc 0 3 0 1 1 3 0 1 3 4 2 1"
 
 python enas/cifar10/main.py \
   --data_format="NHWC" \
   --search_for="micro" \
   --reset_output_dir \
-  --output_dir="stacking_outputs_rotation_final" \
-  --batch_size=32 \
+  --output_dir="stacking_outputs_rotation_final_with_root" \
+  --batch_size=36 \
   --num_epochs=630 \
   --log_every=50 \
   --eval_every_epochs=1 \

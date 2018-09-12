@@ -360,7 +360,7 @@ class MicroChild(Model):
             print("channels--------------------------", input_channels)
             with tf.variable_scope("stem_conv"):
                 w = create_weight(
-                    "w", [input_channels, input_channels, input_channels,
+                    "w", [3, 3, input_channels,
                           self.out_filters * 3])
                 if self.use_root is True:
                     x = tf.nn.conv2d(
