@@ -1,17 +1,24 @@
 #!/bin/bash
 
 export PYTHONPATH="$(pwd)"
+# from 2018_09_09_2230_micro_translation_search_output_stack.txt
+# [0 3 0 2 0 0 1 2 2 4 0 1 0 0 3 0 3 4 2 2]
+# [1 4 1 1 2 3 1 0 2 4 0 1 2 1 4 4 2 1 3 2]
+# val_acc=0.0625
+# controller_loss=126626.984375
+# mse=0.000223237744649
+# cart_error=0.0890415906906
+# mae=0.0595378726721
 
-
-fixed_arc="0 1 0 3 0 0 0 3 3 4 2 1"
-fixed_arc="$fixed_arc 0 3 0 1 1 3 0 1 3 4 2 1"
+fixed_arc="0 3 0 2 0 0 1 2 2 4 0 1 0 0 3 0 3 4 2 2"
+fixed_arc="$fixed_arc 1 4 1 1 2 3 1 0 2 4 0 1 2 1 4 4 2 1 3 2"
 
 python enas/cifar10/main.py \
   --data_format="NHWC" \
   --search_for="micro" \
   --reset_output_dir \
-  --output_dir="stacking_outputs_rotation_final_with_root" \
-  --batch_size=36 \
+  --output_dir="2018_09_09_2230_stacking_outputs_translation_final_with_root" \
+  --batch_size=64 \
   --num_epochs=630 \
   --log_every=50 \
   --eval_every_epochs=1 \
@@ -20,7 +27,7 @@ python enas/cifar10/main.py \
   --child_num_layers=10 \
   --child_out_filters=36 \
   --child_num_branches=5 \
-  --child_num_cells=3 \
+  --child_num_cells=5 \
   --child_keep_prob=0.80 \
   --child_drop_path_keep_prob=0.60 \
   --child_l2_reg=2e-4 \
@@ -42,7 +49,8 @@ python enas/cifar10/main.py \
   --dataset="stacking" \
   --height_img 64 \
   --width_img 64 \
-  --rotation_only \
+  --translation_only \ # training on translation component of block stacking poses
   --max_loss=2 \
+  --use_root \ # based on HyperTree "root" in hypertree code
+  --one_hot_encoding \ # action will be one hot encoded
   "$@"
-
