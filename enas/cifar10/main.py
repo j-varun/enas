@@ -378,11 +378,11 @@ def train():
                         log_string += "\ntr_preds={}".format(tr_preds)
                         log_string += "\ntr_label={}".format(tr_label)
                     print(log_string)
-                    if os.path.exists(FLAGS.output_dir+"/train_metrics.csv"):
+                    if os.path.exists(os.path.join(FLAGS.output_dir,"train_metrics.csv")):
                         file_mode = 'a'
                     else:
                         file_mode = 'w+'
-                    with open(FLAGS.output_dir+"/train_metrics.csv", file_mode) as fp:
+                    with open(os.path.join(FLAGS.output_dir, "train_metrics.csv", file_mode)) as fp:
                         fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(
                             epoch, global_step, loss, loss_sec, tr_acc, tr_acc_5_7_5, tr_acc_1_15, tr_acc_2_30, tr_acc_4_60, tr_acc_8_120, tr_acc_16_240, tr_acc_32_360, tr_op, tr_angle_error, tr_cart_error, tr_mae))
 
@@ -435,11 +435,11 @@ def train():
                                     log_string += "\nmae={}".format(mae)
                                 # log_string += "\n g_emb = {}".format(g_emb)
                                 print(log_string)
-                                if os.path.exists(FLAGS.output_dir+"\controller_metrics.csv"):
+                                if os.path.exists(os.path.join(FLAGS.output_dir, "controller_metrics.csv")):
                                     file_mode = 'a'
                                 else:
                                     file_mode = 'w+'
-                                with open(FLAGS.output_dir+"\controller_metrics.csv", file_mode ) as fp:
+                                with open(os.path.join(FLAGS.output_dir, "controller_metrics.csv"), file_mode) as fp:
                                     fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(epoch, controller_step, loss, entropy, lr, gn, val_acc, bl, reward, c_mse, cart_error, angle_error, mae))
 
                         print("Here are 10 architectures")
