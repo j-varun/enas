@@ -704,7 +704,10 @@ class CostarBlockStackingSequence(Sequence):
             # print("shape=====",X.shape)
 
             # determine the label
-            y = encode_label(self.label_features_to_extract, y, action_successes, self.random_augmentation, current_stacking_reward)
+            if('stacking_reward' in self.label_features_to_extract):
+                y = encode_label(self.label_features_to_extract, y, action_successes, self.random_augmentation, current_stacking_reward)
+            else:
+                y = encode_label(self.label_features_to_extract, y, action_successes, self.random_augmentation, None)
 
             # Debugging checks
             if X is None:
