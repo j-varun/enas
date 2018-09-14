@@ -3,14 +3,28 @@
 export PYTHONPATH="$(pwd)"
 
 
-fixed_arc="0 1 0 3 0 0 0 3 3 4 2 1"
-fixed_arc="$fixed_arc 0 3 0 1 1 3 0 1 3 4 2 1"
+# Epoch 620: Training controller
+#
+# ctrl_step=18570  controller_loss=1494.188 ent=31.84 lr=0.0035 |g|=0.0002   acc=0.6875 bl=62.99 mins=5730.29 rw =111.040000916 mse =0.00900602154434
+# angle_error=0.216985523701
+# mae=0.126344487071
+# --------------------------------------------------------------------------------
+# [1 4 1 1 1 1 1 4 3 1 3 0]
+# [1 2 1 4 2 2 1 1 2 3 1 1]
+# val_acc=1.0000
+# controller_loss=6322.51025391
+# mse=0.00370951113291
+# angle_error=0.104434356093
+# mae=0.126305446029
+# -------------------------
+fixed_arc="1 4 1 1 1 1 1 4 3 1 3 0"
+fixed_arc="$fixed_arc 1 4 1 1 1 1 1 4 3 1 3 0"
 
 python enas/cifar10/main.py \
   --data_format="NHWC" \
   --search_for="micro" \
   --reset_output_dir \
-  --output_dir="stacking_outputs_rotation_final_with_root" \
+  --output_dir="2018_09_14_1249_stacking_outputs_rotation_final_with_root" \
   --batch_size=36 \
   --num_epochs=630 \
   --log_every=50 \
