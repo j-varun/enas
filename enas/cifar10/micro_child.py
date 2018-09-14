@@ -1006,14 +1006,13 @@ class MicroChild(Model):
             # print(np.reshape(normal_arc, [-1]))
             # print(np.reshape(reduce_arc, [-1]))
             # self.global_step = tf.Print(self.global_step, [self.normal_arc, self.reduce_arc], 'connect_controller(): [normal_arc, reduce_arc]: ', summarize=20)
-        csv_row = [total_acc, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_mse, total_mae, total_angle_error, total_cart_error]
         if os.path.exists(csvfile):
             file_mode = 'a'
         else:
             file_mode = 'w+'
         with open(csvfile, file_mode) as fp:
             fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(
-                total_acc, total_acc_5mm_7_5deg, total_acc_1cm_15deg, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_acc_16cm_240deg, total_acc_32cm_360deg, total_mse, total_mae, total_angle_error, total_cart_error, total_loss_sec))
+                total_acc, total_acc_5mm_7_5deg, total_acc_1cm_15deg, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_acc_16cm_240deg, total_acc_32cm_360deg, total_loss, total_mae, total_angle_error, total_cart_error, total_loss_sec))
 
     # override
     def _build_train(self):
