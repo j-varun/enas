@@ -347,8 +347,10 @@ def train():
                     log_string = "\n"
                     log_string += "epoch={:<6d}".format(epoch)
                     log_string += "ch_step={:<6d}".format(global_step)
-                    log_string += " child_loss={:<8.6f}".format(loss)
-                    log_string += " child_loss_sec={:<8.6f}".format(loss_sec)
+                    log_string += " child_loss={}".format(loss)
+                    log_string += " child_loss_sec={}".format(loss_sec)
+                    # log_string += " child_loss={:<8.6f}".format(loss)
+                    # log_string += " child_loss_sec={:<8.6f}".format(loss_sec)
                     log_string += " lr={:<8.4f}".format(lr)
                     log_string += " |g|={:<8.4f}".format(gn)
                     log_string += " child_tr_acc={:<3f}".format(
@@ -382,7 +384,7 @@ def train():
                         file_mode = 'a'
                     else:
                         file_mode = 'w+'
-                    with open(os.path.join(FLAGS.output_dir, "train_metrics.csv", file_mode)) as fp:
+                    with open(os.path.join(FLAGS.output_dir, "train_metrics.csv"), file_mode) as fp:
                         fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(
                             epoch, global_step, loss, loss_sec, tr_acc, tr_acc_5_7_5, tr_acc_1_15, tr_acc_2_30, tr_acc_4_60, tr_acc_8_120, tr_acc_16_240, tr_acc_32_360, tr_op, tr_angle_error, tr_cart_error, tr_mae))
 
