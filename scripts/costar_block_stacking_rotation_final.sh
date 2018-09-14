@@ -24,8 +24,8 @@ python enas/cifar10/main.py \
   --data_format="NHWC" \
   --search_for="micro" \
   --reset_output_dir \
-  --output_dir="2018_09_14_1249_stacking_outputs_rotation_final_with_root" \
-  --batch_size=36 \
+  --output_dir="2018_09_14_1249_stacking_outputs_rotation_final_with_root_msle" \
+  --batch_size=64 \
   --num_epochs=630 \
   --log_every=50 \
   --eval_every_epochs=1 \
@@ -58,5 +58,8 @@ python enas/cifar10/main.py \
   --width_img 64 \
   --rotation_only \
   --max_loss=2 \
+  --use_root \
+  --use_msle \
+  --one_hot_encoding \
   "$@"
 

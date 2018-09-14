@@ -69,6 +69,7 @@ class MicroChild(Model):
                  data_base_path="",
                  output_dir="",
                  pool_distance=2,
+                 use_msle=False,
                  **kwargs
                  ):
 
@@ -130,6 +131,7 @@ class MicroChild(Model):
         self.verbose = 0
         self.output_dir = output_dir
         self.one_hot_encoding = one_hot_encoding
+        self.use_msle = use_msle
 
         self.global_step = tf.Variable(
             0, dtype=tf.int32, trainable=False, name="global_step")
@@ -892,9 +894,10 @@ class MicroChild(Model):
             acc_op_8_120 = self.valid_acc_8cm_120deg
             acc_op_16cm_240deg = self.valid_acc_16cm_240deg
             acc_op_32cm_360deg = self.valid_acc_32cm_360deg
+            loss_secondary_op = self.valid_loss_secondary
             cart_op = self.valid_cart_error
             ang_er_op = self.valid_angle_error
-            mse_op = self.valid_loss
+            loss_op = self.valid_loss
             mae_op = self.valid_mae
             csvfile = self.output_dir + "/valid_metrics.csv"
         elif eval_set == "test":
@@ -909,9 +912,10 @@ class MicroChild(Model):
             acc_op_8_120 = self.test_acc_8cm_120deg
             acc_op_16cm_240deg = self.test_acc_16cm_240deg
             acc_op_32cm_360deg = self.test_acc_32cm_360deg
+            loss_secondary_op = self.test_loss_secondary
             ang_er_op = self.test_angle_error
             cart_op = self.test_cart_error
-            mse_op = self.test_loss
+            loss_op = self.test_loss
             mae_op = self.test_mae
             csvfile = self.output_dir + "/test_metrics.csv"
         else:
@@ -927,9 +931,10 @@ class MicroChild(Model):
         total_acc_32cm_360deg = 0
         total_cart_error = 0
         total_mae = 0
-        total_mse = 0
+        total_loss = 0
         total_exp = 0
         total_angle_error = 0
+        total_loss_sec = 0
         normal_arc = []
         reduce_arc = []
         for batch_id in range(num_batches):
@@ -942,11 +947,11 @@ class MicroChild(Model):
             #     # remove the print arc tensor if we're on batch 1
             #     feed_dict.pop('print_arc', None)
             if self.fixed_arc is None:
-                acc, acc_5_7_5, acc_1_15, acc_2_30, acc_4_60, acc_8_120, acc_16_240, acc_32_360, cart_error, angle_error, mse, mae = sess.run(
-                    [acc_op, acc_op_5mm_7_5deg, acc_op_1cm_15deg, acc_op_2_30, acc_op_4_60, acc_op_8_120, acc_op_16cm_240deg, acc_op_32cm_360deg, cart_op, ang_er_op, mse_op, mae_op], feed_dict=feed_dict)
+                acc, acc_5_7_5, acc_1_15, acc_2_30, acc_4_60, acc_8_120, acc_16_240, acc_32_360, cart_error, angle_error, mse, mae, loss_sec = sess.run(
+                    [acc_op, acc_op_5mm_7_5deg, acc_op_1cm_15deg, acc_op_2_30, acc_op_4_60, acc_op_8_120, acc_op_16cm_240deg, acc_op_32cm_360deg, cart_op, ang_er_op, loss_op, mae_op, loss_secondary_op], feed_dict=feed_dict)
             else:
-                acc, acc_5_7_5, acc_1_15, acc_2_30, acc_4_60, acc_8_120, acc_16_240, acc_32_360, cart_error, angle_error, mse, mae = sess.run(
-                    [acc_op, acc_op_5mm_7_5deg, acc_op_1cm_15deg, acc_op_2_30, acc_op_4_60, acc_op_8_120, acc_op_16cm_240deg, acc_op_32cm_360deg, cart_op, ang_er_op, mse_op, mae_op], feed_dict=feed_dict)
+                acc, acc_5_7_5, acc_1_15, acc_2_30, acc_4_60, acc_8_120, acc_16_240, acc_32_360, cart_error, angle_error, mse, mae, loss_sec = sess.run(
+                    [acc_op, acc_op_5mm_7_5deg, acc_op_1cm_15deg, acc_op_2_30, acc_op_4_60, acc_op_8_120, acc_op_16cm_240deg, acc_op_32cm_360deg, cart_op, ang_er_op, loss_op, mae_op, loss_secondary_op], feed_dict=feed_dict)
             total_acc += acc
             total_acc_5mm_7_5deg += acc_5_7_5
             total_acc_1cm_15deg += acc_1_15
@@ -957,8 +962,9 @@ class MicroChild(Model):
             total_acc_32cm_360deg += acc_32_360
             total_cart_error += cart_error
             total_angle_error += angle_error
-            total_mse += mse
+            total_loss += mse
             total_mae += mae
+            total_loss_sec += loss_sec
             total_exp += self.eval_batch_size
             if verbose:
                 sys.stdout.write(
@@ -987,8 +993,10 @@ class MicroChild(Model):
         if self.translation_only is False and self.stacking_reward is False:
             print("{}_angle_error: {:<6.4f}".format(
                 eval_set, float(total_angle_error) / num_batches))
-        print("{}_mse: {:<6.4f}".format(
-            eval_set, float(total_mse) / num_batches))
+        print("{}_loss_1: {:<6.4f}".format(
+            eval_set, float(total_loss) / num_batches))
+        print("{}_loss_2: {:<6.4f}".format(
+            eval_set, float(total_loss_sec) / num_batches))
         print("{}_mae: {:<6.4f}".format(
             eval_set, float(total_mae) / num_batches))
         if self.fixed_arc is None:
@@ -1003,8 +1011,8 @@ class MicroChild(Model):
         else:
             file_mode = 'w+'
         with open(csvfile, file_mode) as fp:
-            fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(
-                total_acc, total_acc_5mm_7_5deg, total_acc_1cm_15deg, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_acc_16cm_240deg, total_acc_32cm_360deg, total_mse, total_mae, total_angle_error, total_cart_error))
+            fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(
+                total_acc, total_acc_5mm_7_5deg, total_acc_1cm_15deg, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_acc_16cm_240deg, total_acc_32cm_360deg, total_mse, total_mae, total_angle_error, total_cart_error, total_loss_sec))
 
     # override
     def _build_train(self):
@@ -1016,8 +1024,16 @@ class MicroChild(Model):
         # print("ytrshape-----------", self.y_train)
         if self.dataset == "stacking":
             log_probs = tf.nn.sigmoid(logits)
-            self.loss = tf.losses.mean_squared_error(
-                labels=self.y_train, predictions=log_probs)
+            if self.use_msle is False:
+                self.loss = tf.losses.mean_squared_error(
+                    labels=self.y_train, predictions=log_probs)
+                self.loss_secondary = tf.keras.losses.MSLE(
+                    self.y_train, log_probs)
+            else:
+                self.loss = tf.keras.losses.MSLE(
+                    self.y_train, log_probs)
+                self.loss_secondary = tf.losses.mean_squared_error(
+                    labels=self.y_train, predictions=log_probs)
         else:
             activation_fn = tf.nn.sparse_softmax_cross_entropy_with_logits
             log_probs = activation_fn(
@@ -1177,8 +1193,17 @@ class MicroChild(Model):
                     self.y_valid, self.valid_preds)
                 self.valid_acc_32cm_360deg = tf.reduce_sum(self.valid_acc_32cm_360deg)
 
-                self.valid_loss = tf.reduce_mean(tf.losses.mean_squared_error(
-                    labels=self.y_valid, predictions=self.valid_preds))
+                if self.use_msle is False:
+                    self.valid_loss = tf.reduce_mean(tf.losses.mean_squared_error(
+                        labels=self.y_valid, predictions=self.valid_preds))
+                    self.valid_loss_secondary = tf.keras.losses.MSLE(
+                        self.y_valid, self.valid_preds)
+                else:
+                    self.valid_loss = tf.keras.losses.MSLE(
+                        self.y_valid, self.valid_preds)
+                    self.valid_loss_secondary = tf.losses.mean_squared_error(
+                        labels=self.y_valid, predictions=self.valid_preds)
+
                 self.valid_cart_error = grasp_metrics.cart_error(
                   self.y_valid, self.valid_preds)
                 if self.rotation_only is True or self.stacking_reward is True:
@@ -1259,8 +1284,16 @@ class MicroChild(Model):
             self.test_mae = tf.metrics.mean_absolute_error(
                 self.y_test, self.test_preds)
             self.test_mae = tf.reduce_mean(self.test_mae)
-            self.test_loss = tf.reduce_mean(tf.losses.mean_squared_error(
-                    labels=self.y_test, predictions=self.test_preds))
+            if self.use_msle is False:
+                self.test_loss = tf.reduce_mean(tf.losses.mean_squared_error(
+                        labels=self.y_test, predictions=self.test_preds))
+                self.test_loss_secondary = tf.keras.losses.MSLE(
+                        self.y_test, self.test_preds)
+            else:
+                self.test_loss = tf.keras.losses.MSLE(
+                    self.y_test, self.test_preds)
+                self.test_loss_secondary = tf.losses.mean_squared_error(
+                    labels=self.y_test, predictions=self.test_preds)
 
         else:
             cast_type = tf.to_int32
@@ -1368,8 +1401,17 @@ class MicroChild(Model):
                 self.y_valid_shuffle, self.valid_shuffle_preds)
             self.valid_shuffle_acc_32cm_360deg = tf.reduce_sum(self.valid_shuffle_acc_32cm_360deg)
 
-            self.valid_shuffle_loss = tf.reduce_mean(tf.losses.mean_squared_error(
-                    labels=self.y_valid_shuffle, predictions=self.valid_shuffle_preds))
+            if self.use_msle is False:
+                self.valid_shuffle_loss = tf.reduce_mean(tf.losses.mean_squared_error(
+                        labels=self.y_valid_shuffle, predictions=self.valid_shuffle_preds))
+                self.valid_shuffle_loss_secondary = tf.keras.losses.MSLE(
+                    self.y_valid_shuffle, self.valid_shuffle_preds)
+            else:
+                self.valid_shuffle_loss = tf.keras.losses.MSLE(
+                    self.y_valid_shuffle, self.valid_shuffle_preds)
+                self.valid_shuffle_loss_secondary = tf.losses.mean_squared_error(
+                    labels=self.y_valid_shuffle, predictions=self.valid_shuffle_preds)
+
             self.valid_shuffle_cart_error = grasp_metrics.cart_error(
                 self.y_valid_shuffle, self.valid_shuffle_preds)
             if self.rotation_only is True or self.stacking_reward is True:

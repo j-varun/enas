@@ -56,6 +56,7 @@ DEFINE_boolean("one_hot_encoding", False, "Use one hot encoding for labels (only
 DEFINE_boolean("rotation_only", False, "Rotation only case")
 DEFINE_boolean("stacking_reward", False, "Train a block stacking critic which estimates the reward of a proposed action based on the current state and command.")
 DEFINE_integer("max_loss", 0, "To set positive reward; for stacking dataset only")
+DEFINE_boolean("use_msle", False, "Use Mean Square Logarithmic Error as Loss")
 
 DEFINE_integer("num_epochs", 300, "")
 DEFINE_integer("child_lr_dec_every", 100, "")
@@ -180,6 +181,7 @@ def get_ops(images, labels):
         output_dir=FLAGS.output_dir,
         pool_distance=FLAGS.child_pool_distance,
         one_hot_encoding=FLAGS.one_hot_encoding,
+        use_msle=FLAGS.use_msle,
         random_augmentation=FLAGS.random_augmentation
     )
     if FLAGS.child_fixed_arc is None:
@@ -243,6 +245,7 @@ def get_ops(images, labels):
     child_ops = {
         "global_step": child_model.global_step,
         "loss": child_model.loss,
+        "loss_sec": child_model.loss_secondary,
         "train_op": child_model.train_op,
         "lr": child_model.lr,
         "grad_norm": child_model.grad_norm,
@@ -311,6 +314,7 @@ def train():
             while True:
                 run_ops = [
                     child_ops["loss"],
+                    child_ops["loss_sec"],
                     child_ops["lr"],
                     child_ops["grad_norm"],
                     child_ops["train_acc"],
@@ -328,7 +332,7 @@ def train():
                     child_ops["train_preds"],
                     child_ops["train_label"],
                 ]
-                loss, lr, gn, tr_acc, tr_acc_5_7_5, tr_acc_1_15, tr_acc_2_30, tr_acc_4_60, tr_acc_8_120, tr_acc_16_240, tr_acc_32_360, tr_op, tr_angle_error, tr_cart_error, tr_mae, tr_preds, tr_label = sess.run(
+                loss, loss_sec, lr, gn, tr_acc, tr_acc_5_7_5, tr_acc_1_15, tr_acc_2_30, tr_acc_4_60, tr_acc_8_120, tr_acc_16_240, tr_acc_32_360, tr_op, tr_angle_error, tr_cart_error, tr_mae, tr_preds, tr_label = sess.run(
                     run_ops)
                 global_step = sess.run(child_ops["global_step"])
                 print("---------------global step", global_step, end="\r")
@@ -344,6 +348,7 @@ def train():
                     log_string += "epoch={:<6d}".format(epoch)
                     log_string += "ch_step={:<6d}".format(global_step)
                     log_string += " child_loss={:<8.6f}".format(loss)
+                    log_string += " child_loss_sec={:<8.6f}".format(loss_sec)
                     log_string += " lr={:<8.4f}".format(lr)
                     log_string += " |g|={:<8.4f}".format(gn)
                     log_string += " child_tr_acc={:<3f}".format(
@@ -373,13 +378,13 @@ def train():
                         log_string += "\ntr_preds={}".format(tr_preds)
                         log_string += "\ntr_label={}".format(tr_label)
                     print(log_string)
-                    if os.path.exists(FLAGS.output_dir+"/train_metrics.csv"):
+                    if os.path.exists(os.path.join(FLAGS.output_dir,"train_metrics.csv")):
                         file_mode = 'a'
                     else:
                         file_mode = 'w+'
-                    with open(FLAGS.output_dir+"/train_metrics.csv", file_mode) as fp:
-                        fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(
-                            epoch, global_step, loss, tr_acc, tr_acc_5_7_5, tr_acc_1_15, tr_acc_2_30, tr_acc_4_60, tr_acc_8_120, tr_acc_16_240, tr_acc_32_360, tr_op, tr_angle_error, tr_cart_error, tr_mae))
+                    with open(os.path.join(FLAGS.output_dir, "train_metrics.csv", file_mode)) as fp:
+                        fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(
+                            epoch, global_step, loss, loss_sec, tr_acc, tr_acc_5_7_5, tr_acc_1_15, tr_acc_2_30, tr_acc_4_60, tr_acc_8_120, tr_acc_16_240, tr_acc_32_360, tr_op, tr_angle_error, tr_cart_error, tr_mae))
 
                 if actual_step % ops["eval_every"] == 0:
                     if (FLAGS.controller_training and
@@ -421,7 +426,7 @@ def train():
                                 log_string += " mins={:<.2f}".format(
                                     float(curr_time - start_time) / 60)
                                 log_string += " rw ={}".format(reward)
-                                log_string += " mse ={}".format(c_mse)
+                                log_string += " loss ={}".format(c_mse)
                                 if FLAGS.dataset == "stacking":
                                     if FLAGS.rotation_only is False and FLAGS.stacking_reward is False:
                                         log_string += "\ncart_error={}".format(cart_error)
@@ -430,11 +435,11 @@ def train():
                                     log_string += "\nmae={}".format(mae)
                                 # log_string += "\n g_emb = {}".format(g_emb)
                                 print(log_string)
-                                if os.path.exists(FLAGS.output_dir+"\controller_metrics.csv"):
+                                if os.path.exists(os.path.join(FLAGS.output_dir, "controller_metrics.csv")):
                                     file_mode = 'a'
                                 else:
                                     file_mode = 'w+'
-                                with open(FLAGS.output_dir+"\controller_metrics.csv", file_mode ) as fp:
+                                with open(os.path.join(FLAGS.output_dir, "controller_metrics.csv"), file_mode) as fp:
                                     fp.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(epoch, controller_step, loss, entropy, lr, gn, val_acc, bl, reward, c_mse, cart_error, angle_error, mae))
 
                         print("Here are 10 architectures")
