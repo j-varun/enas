@@ -25,7 +25,7 @@ python enas/cifar10/main.py \
   --search_for="micro" \
   --reset_output_dir \
   --output_dir="2018_09_14_1249_stacking_outputs_rotation_final_with_root_msle" \
-  --batch_size=64 \
+  --batch_size=48 \
   --num_epochs=630 \
   --log_every=50 \
   --eval_every_epochs=1 \

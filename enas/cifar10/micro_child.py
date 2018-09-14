@@ -22,6 +22,7 @@ from enas.cifar10.image_ops import global_max_pool
 from enas.utils import count_model_params
 from enas.utils import get_train_ops
 from enas.common_ops import create_weight
+import keras
 
 import grasp_metrics
 
@@ -1027,10 +1028,10 @@ class MicroChild(Model):
             if self.use_msle is False:
                 self.loss = tf.losses.mean_squared_error(
                     labels=self.y_train, predictions=log_probs)
-                self.loss_secondary = tf.keras.losses.MSLE(
+                self.loss_secondary = keras.losses.msle(
                     self.y_train, log_probs)
             else:
-                self.loss = tf.keras.losses.MSLE(
+                self.loss = keras.losses.msle(
                     self.y_train, log_probs)
                 self.loss_secondary = tf.losses.mean_squared_error(
                     labels=self.y_train, predictions=log_probs)
@@ -1196,10 +1197,10 @@ class MicroChild(Model):
                 if self.use_msle is False:
                     self.valid_loss = tf.reduce_mean(tf.losses.mean_squared_error(
                         labels=self.y_valid, predictions=self.valid_preds))
-                    self.valid_loss_secondary = tf.keras.losses.MSLE(
+                    self.valid_loss_secondary = keras.losses.msle(
                         self.y_valid, self.valid_preds)
                 else:
-                    self.valid_loss = tf.keras.losses.MSLE(
+                    self.valid_loss = keras.losses.msle(
                         self.y_valid, self.valid_preds)
                     self.valid_loss_secondary = tf.losses.mean_squared_error(
                         labels=self.y_valid, predictions=self.valid_preds)
@@ -1287,10 +1288,10 @@ class MicroChild(Model):
             if self.use_msle is False:
                 self.test_loss = tf.reduce_mean(tf.losses.mean_squared_error(
                         labels=self.y_test, predictions=self.test_preds))
-                self.test_loss_secondary = tf.keras.losses.MSLE(
+                self.test_loss_secondary = keras.losses.msle(
                         self.y_test, self.test_preds)
             else:
-                self.test_loss = tf.keras.losses.MSLE(
+                self.test_loss = keras.losses.msle(
                     self.y_test, self.test_preds)
                 self.test_loss_secondary = tf.losses.mean_squared_error(
                     labels=self.y_test, predictions=self.test_preds)
@@ -1404,10 +1405,10 @@ class MicroChild(Model):
             if self.use_msle is False:
                 self.valid_shuffle_loss = tf.reduce_mean(tf.losses.mean_squared_error(
                         labels=self.y_valid_shuffle, predictions=self.valid_shuffle_preds))
-                self.valid_shuffle_loss_secondary = tf.keras.losses.MSLE(
+                self.valid_shuffle_loss_secondary = keras.losses.msle(
                     self.y_valid_shuffle, self.valid_shuffle_preds)
             else:
-                self.valid_shuffle_loss = tf.keras.losses.MSLE(
+                self.valid_shuffle_loss = keras.losses.msle(
                     self.y_valid_shuffle, self.valid_shuffle_preds)
                 self.valid_shuffle_loss_secondary = tf.losses.mean_squared_error(
                     labels=self.y_valid_shuffle, predictions=self.valid_shuffle_preds)
