@@ -306,9 +306,9 @@ def encode_action_and_images(
     else:
         raise ValueError('Unsupported data input: ' + str(data_features_to_extract))
 
-    if (data_features_to_extract is not None and 'image_0_image_n_vec_xyz_aaxyz_nsc_15' in data_features_to_extract):
-        # make the giant data cube if it is requested
-        X = concat_images_with_tiled_vector_np(X[:2], X[2:])
+    # if (data_features_to_extract is not None and 'image_0_image_n_vec_xyz_aaxyz_nsc_15' in data_features_to_extract):
+    #     # make the giant data cube if it is requested
+    #     X = concat_images_with_tiled_vector_np(X[:2], X[2:])
 
     if (data_features_to_extract is not None and
             ('image_0_image_n_vec_xyz_10' in data_features_to_extract or
