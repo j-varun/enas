@@ -28,7 +28,7 @@ python enas/cifar10/main.py \
   --batch_size=32 \
   --num_epochs=630 \
   --log_every=50 \
-  --eval_every_epochs=1 \
+  --eval_every_epochs=10 \
   --child_fixed_arc="${fixed_arc}" \
   --child_use_aux_heads \
   --child_num_layers=10 \
