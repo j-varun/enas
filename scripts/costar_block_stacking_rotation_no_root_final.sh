@@ -17,7 +17,7 @@ python enas/cifar10/main.py \
   --data_format="NHWC" \
   --search_for="micro" \
   --reset_output_dir \
-  --output_dir="2018_09_15_0953_stacking_outputs_rotation_without_root_msle_final" \
+  --output_dir="2018_09_17_1723_stacking_outputs_rotation_without_root_msle_final" \
   --batch_size=64 \
   --num_epochs=630 \
   --log_every=50 \
