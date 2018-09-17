@@ -507,6 +507,14 @@ def main(_):
     sys.stdout = Logger(log_file)
 
     utils.print_user_flags()
+    with open(os.path.join(FLAGS.output_dir, "controller_metrics.csv"), 'w') as fp:
+        fp.write("epoch, controller_step, loss, entropy, lr, gn, val_acc, bl, reward, c_mse, cart_error, angle_error, mae")
+    with open(os.path.join(FLAGS.output_dir, "train_metrics.csv"), 'w') as fp:
+        fp.write("epoch, global_step, loss, loss_sec, tr_acc, tr_acc_5_7_5, tr_acc_1_15, tr_acc_2_30, tr_acc_4_60, tr_acc_8_120, tr_acc_16_240, tr_acc_32_360, tr_op, tr_angle_error, tr_cart_error, tr_mae")
+    with open(os.path.join(FLAGS.output_dir, "valid_metrics.csv"), 'w') as fp:
+        fp.write("total_acc, total_acc_5mm_7_5deg, total_acc_1cm_15deg, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_acc_16cm_240deg, total_acc_32cm_360deg, total_loss, total_mae, total_angle_error, total_cart_error, total_loss_sec")
+    with open(os.path.join(FLAGS.output_dir, "test_metrics.csv"), 'w') as fp:
+        fp.write("total_acc, total_acc_5mm_7_5deg, total_acc_1cm_15deg, total_acc_2_30, total_acc_4_60, total_acc_8_120, total_acc_16cm_240deg, total_acc_32cm_360deg, total_loss, total_mae, total_angle_error, total_cart_error, total_loss_sec")
     train()
 
 
