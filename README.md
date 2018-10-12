@@ -1,8 +1,16 @@
 # rENAS: regression Efficient Neural Architecture Search
 
-rENAS is described in the paper [Training Frankenstein's Creature to Stack: HyperTree Architecture Search](https://sites.google.com/view/hypertree-renas). It is an extension of [Efficient Neural Architecture Search via Parameter Sharing (2018)](https://arxiv.org/abs/1802.03268) for regression problems.
+Paper: [Training Frankenstein's Creature to Stack: HyperTree Architecture Search](https://sites.google.com/view/hypertree-renas).
+Authors: [Andrew Hundt](athundt@gmail.com), Varun Jain, Chris Paxton, Gregory D. Hager.
+
+
+rENAS is an extension of [Efficient Neural Architecture Search via Parameter Sharing (2018)](https://arxiv.org/abs/1802.03268) for regression problems.
 
 rENAS extends ENAS with mean squared logaritmic error (MSLE), mean squared error (MSE) loss functions and an approximate inverse of these loss functions for the reward. We have also parameterized the number of reduction and normal cells, plus replaced relu with elu, and average pooling with max pooling. We have also added support for the [CoSTAR Block Stacking Dataset](https://sites.google.com/site/costardataset) and the [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset. It is implemented in TensorFlow as a modified direct fork of the [original ENAS implementation](https://github.com/melodyguan/enas).
+
+This material is based upon work supported by the National Science Foundation under NRI Grant Award No. 1637949.
+
+## CoSTAR Block Stacking Dataset
 
 To run rENAS search first [download the CoSTAR Block Stacking Dataset](https://sites.google.com/site/costardataset/download), which is approximately 0.5 TB in size.
 Then, from the home directory run the architecture search script:
@@ -20,11 +28,6 @@ To run rENAS with a final architecture determined by the search algorithm you ha
 ./scripts/costar_block_stacking_rotation_final.sh
 ```
 
-It is also now possible to run on the fashion-mnist dataset.
-
-rENAS Authors: [Andrew Hundt](athundt@gmail.com), Varun Jain, Chris Paxton, Gregory D. Hager.
-
-This material is based upon work supported by the National Science Foundation under NRI Grant Award No. 1637949.
 
 # Efficient Neural Architecture Search via Parameter Sharing
 
