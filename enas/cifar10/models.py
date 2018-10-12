@@ -118,7 +118,7 @@ class Model(object):
                     with open(self.data_base_path + 'costar_block_stacking_v0.3_success_only_test_files.txt', mode='r') as myfile:
                         test_data = myfile.read().splitlines()
                     with open(self.data_base_path + 'costar_block_stacking_v0.3_success_only_val_files.txt', mode='r') as myfile:
-                        validation_data = myfile.read().splitlines()     
+                        validation_data = myfile.read().splitlines()
                     print(train_data)
                     # train_data = [self.data_base_path + name for name in train_data]
                     # test_data = [self.data_base_path + name for name in test_data]
@@ -261,7 +261,10 @@ class Model(object):
                 validation_generator = CostarBlockStackingSequence(
                     validation_data, batch_size=batch_size, verbose=0,
                     label_features_to_extract=label_features,
-                    data_features_to_extract=data_features, output_shape=self.image_shape, one_hot_encoding=self.one_hot_encoding)
+                    data_features_to_extract=data_features,
+                    output_shape=self.image_shape,
+                    one_hot_encoding=self.one_hot_encoding,
+                    is_training=False)
                 validation_enqueuer = OrderedEnqueuer(
                     validation_generator,
                     use_multiprocessing=False,
@@ -306,7 +309,10 @@ class Model(object):
                 test_generator = CostarBlockStackingSequence(
                     test_data, batch_size=batch_size, verbose=0,
                     label_features_to_extract=label_features,
-                    data_features_to_extract=data_features, output_shape=self.image_shape, one_hot_encoding=self.one_hot_encoding)
+                    data_features_to_extract=data_features,
+                    output_shape=self.image_shape,
+                    one_hot_encoding=self.one_hot_encoding,
+                    is_training=False)
                 test_enqueuer = OrderedEnqueuer(
                     test_generator,
                     use_multiprocessing=False,

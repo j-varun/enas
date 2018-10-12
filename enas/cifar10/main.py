@@ -119,6 +119,7 @@ flags.DEFINE_float(
     None,
     'Frequency from 0.0 to 1.0 with which random augmentation is performed. '
     'Disabled by default and currently for block stacking dataset only.'
+    'If you plan to enable this, we find 0.25 works ok but have not tested extensively.'
 )
 
 
