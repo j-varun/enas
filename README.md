@@ -1,13 +1,37 @@
+# rENAS: regression Efficient Neural Architecture Search
+
+regression Efficient Neural Architecture Search is described in the paper [Training Frankenstein's Creature to Stack: HyperTree Architecture Search](https://sites.google.com/view/hypertree-renas), and an implementatino can be found here. rENAS is an extension of [Efficient Neural Architecture Search via Parameter Sharing (2018)](https://arxiv.org/abs/1802.03268) for regression problems evaluated on the [CoSTAR Block Stacking Dataset](https://sites.google.com/site/costardataset). The implementation is in TensorFlow.
+
+rENAS extends ENAS with mean squared logaritmic error (MSLE), mean squared error (MSE) loss functions and an approximate inverse of these loss functions for the reward. We have also parameterized the number of reduction and normal cells, plus replaced relu with elu, and average pooling with max pooling.
+
+To run rENAS search first [download the CoSTAR Block Stacking Dataset](https://sites.google.com/site/costardataset/download), which is approximately 0.5 TB in size.
+Then, from the home directory run the architecture search script:
+
+```
+./scripts/costar_block_stacking_rotation_search_no_root.sh
+```
+
+This will search for architectures and print them out as it runs. You should look through these outputs to find an architecture that seems to perform particularly well, and then train that final architecture from scratch to get the best results.
+
+To run rENAS with a final architecture determined by the search algorithm you have to specify the archiecture using a string representing the model graph. The following is an example script for using the architecture we described in our paper:
+
+
+```
+./scripts/costar_block_stacking_rotation_final.sh
+```
+
+It is also now possible to run on the fashion-mnist dataset.
+
+rENAS Authors: [Andrew Hundt](athundt@gmail.com), Varun Jain, Chris Paxton, Gregory D. Hager.
+
+This material is based upon work supported by the National Science Foundation under NRI Grant Award No. 1637949.
+
 # Efficient Neural Architecture Search via Parameter Sharing
 
-Authors' implementation of "Efficient Neural Architecture Search via Parameter Sharing" (2018) in TensorFlow.
 
 Includes code for CIFAR-10 image classification and Penn Tree Bank language modeling tasks.
 
-Paper: https://arxiv.org/abs/1802.03268
-
-Authors: Hieu Pham*, Melody Y. Guan*, Barret Zoph, Quoc V. Le, Jeff Dean
-
+ENAS Authors: Hieu Pham*, Melody Y. Guan*, Barret Zoph, Quoc V. Le, Jeff Dean
 _This is not an official Google product._
 
 ## Penn Treebank
