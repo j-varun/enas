@@ -102,7 +102,7 @@ Please consider citing the paper introducing rENAS if you use it.
 
 [Training Frankenstein's Creature to Stack: HyperTree Architecture Search](https://sites.google.com/view/hypertree-renas).
 
-The rENAS citation information will be added when it becomes available, or email [Andrew Hundt](athundt@gmail.com) for citation information.
+The rENAS citation information will be added when it becomes available, or email [Andrew Hundt <athundt@gmail.com>](mailto:athundt@gmail.com) for citation information.
 
 ## ENAS
 
