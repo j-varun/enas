@@ -8,7 +8,7 @@
 [![Training Frankenstein's Creature to Stack: HyperTree Architecture Search](https://img.youtube.com/vi/1MV7slHnMX0/0.jpg)](https://youtu.be/1MV7slHnMX0 "Training Frankenstein's Creature to Stack: HyperTree Architecture Search")
 
 
-rENAS is an extension of [Efficient Neural Architecture Search via Parameter Sharing (2018)](https://arxiv.org/abs/1802.03268) to regression problems implemented in TensorFlow as a modified direct fork of the [original ENAS implementation](https://github.com/melodyguan/enas).
+rENAS is an extension of [Efficient Neural Architecture Search via Parameter Sharing (2018)](https://arxiv.org/abs/1802.03268) to regression problems. It is implemented in TensorFlow as a modified direct fork of the [original ENAS implementation](https://github.com/melodyguan/enas).
 
 rENAS extends ENAS with mean squared logaritmic error (MSLE), mean squared error (MSE) loss functions and an approximate inverse of these loss functions for the reward. We have also parameterized the number of reduction and normal cells, plus replaced relu with elu, and average pooling with max pooling. We have also added support for the [CoSTAR Block Stacking Dataset](https://sites.google.com/site/costardataset) and the [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset.
 
