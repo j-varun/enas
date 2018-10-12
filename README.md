@@ -94,7 +94,17 @@ A micro architecture can be specified by two sequences of cells concatenated aft
 
 # Citations
 
-If you happen to use rENAS, please consider citing the paper introducing it: [Training Frankenstein's Creature to Stack: HyperTree Architecture Search](https://sites.google.com/view/hypertree-renas). The rENAS citation information will be added when it becomes available, or email [Andrew Hundt](athundt@gmail.com) for citation information.
+Please consider citing both papers associated with this repository.
+
+## rENAS
+
+Please consider citing the paper introducing rENAS if you use it.
+
+[Training Frankenstein's Creature to Stack: HyperTree Architecture Search](https://sites.google.com/view/hypertree-renas).
+
+The rENAS citation information will be added when it becomes available, or email [Andrew Hundt](athundt@gmail.com) for citation information.
+
+## ENAS
 
 If you happen to use ENAS, please consider citing it.
 ```
