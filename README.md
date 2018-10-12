@@ -1,7 +1,8 @@
 # rENAS: regression Efficient Neural Architecture Search
 
-Paper: [Training Frankenstein's Creature to Stack: HyperTree Architecture Search](https://sites.google.com/view/hypertree-renas).
-Authors: [Andrew Hundt](athundt@gmail.com), Varun Jain, Chris Paxton, Gregory D. Hager.
+**Paper:** [Training Frankenstein's Creature to Stack: HyperTree Architecture Search](https://sites.google.com/view/hypertree-renas).
+
+**Authors:** [Andrew Hundt](athundt@gmail.com), Varun Jain, Chris Paxton, Gregory D. Hager.
 
 
 [![Training Frankenstein's Creature to Stack: HyperTree Architecture Search](https://img.youtube.com/vi/1MV7slHnMX0/0.jpg)](https://youtu.be/1MV7slHnMX0 "Training Frankenstein's Creature to Stack: HyperTree Architecture Search")
