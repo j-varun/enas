@@ -1,8 +1,8 @@
 # rENAS: regression Efficient Neural Architecture Search
 
-regression Efficient Neural Architecture Search is described in the paper [Training Frankenstein's Creature to Stack: HyperTree Architecture Search](https://sites.google.com/view/hypertree-renas), and an implementatino can be found here. rENAS is an extension of [Efficient Neural Architecture Search via Parameter Sharing (2018)](https://arxiv.org/abs/1802.03268) for regression problems evaluated on the [CoSTAR Block Stacking Dataset](https://sites.google.com/site/costardataset). The implementation is in TensorFlow.
+regression Efficient Neural Architecture Search is described in the paper [Training Frankenstein's Creature to Stack: HyperTree Architecture Search](https://sites.google.com/view/hypertree-renas), and an implementation can be found at [github.com/ahundt/enas](github.com/ahundt/enas). rENAS is an extension of [Efficient Neural Architecture Search via Parameter Sharing (2018)](https://arxiv.org/abs/1802.03268) for regression problems evaluated on the [CoSTAR Block Stacking Dataset](https://sites.google.com/site/costardataset). The implementation is in TensorFlow and is a modified direct fork of the [original ENAS implementation](https://github.com/melodyguan/enas).
 
-rENAS extends ENAS with mean squared logaritmic error (MSLE), mean squared error (MSE) loss functions and an approximate inverse of these loss functions for the reward. We have also parameterized the number of reduction and normal cells, plus replaced relu with elu, and average pooling with max pooling.
+rENAS extends ENAS with mean squared logaritmic error (MSLE), mean squared error (MSE) loss functions and an approximate inverse of these loss functions for the reward. We have also parameterized the number of reduction and normal cells, plus replaced relu with elu, and average pooling with max pooling. We have also added support for the [CoSTAR Block Stacking Dataset](https://sites.google.com/site/costardataset) and the [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset.
 
 To run rENAS search first [download the CoSTAR Block Stacking Dataset](https://sites.google.com/site/costardataset/download), which is approximately 0.5 TB in size.
 Then, from the home directory run the architecture search script:
@@ -28,6 +28,7 @@ This material is based upon work supported by the National Science Foundation un
 
 # Efficient Neural Architecture Search via Parameter Sharing
 
+The original repository for efficient neural architecture search is at [https://github.com/melodyguan/enas](https://github.com/melodyguan/enas). This is a modified version.
 
 Includes code for CIFAR-10 image classification and Penn Tree Bank language modeling tasks.
 
