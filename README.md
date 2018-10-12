@@ -92,9 +92,11 @@ Here, `index_1` and `index_2` can be any previous index. `op_1` and `op_2` can b
 
 A micro architecture can be specified by two sequences of cells concatenated after each other, as shown in our script `./scripts/cifar10_micro_final.sh`
 
-## Citations
+# Citations
 
-If you happen to use our work, please consider citing our paper.
+If you happen to use rENAS, please consider citing the paper introducing it: [Training Frankenstein's Creature to Stack: HyperTree Architecture Search](https://sites.google.com/view/hypertree-renas). The rENAS citation information will be added when it becomes available, or email [Andrew Hundt](athundt@gmail.com) for citation information.
+
+If you happen to use ENAS, please consider citing it.
 ```
 @article{enas,
   title   = {Efficient Neural Architecture Search via Parameter Sharing},
