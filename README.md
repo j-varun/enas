@@ -111,6 +111,23 @@ Please consider citing the paper introducing rENAS if you use it.
 
 The rENAS citation information will be added when it becomes available, or email [Andrew Hundt <athundt@gmail.com>](mailto:athundt@gmail.com) for citation information.
 
+```
+@article{hundt2018hypertree,
+    author = {Andrew Hundt and 
+              Varun Jain and 
+              Chris Paxton and 
+              Gregory D. Hager},
+    title = "{Training Frankenstein's Creature to Stack: HyperTree Architecture Search}",
+    journal = {ArXiv e-prints},
+    archivePrefix = {arXiv},
+    eprint = {1810.11714},
+    year = 2018,
+    month = Oct,
+    url = {https://arxiv.org/abs/1810.11714}
+}
+
+```
+
 ## ENAS
 
 If you happen to use ENAS, please consider citing it.
